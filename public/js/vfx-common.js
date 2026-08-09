@@ -81,6 +81,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
+// Mobile hamburger nav toggle — works on any page with a .nav-toggle button.
+// Runs independently of login state so it fires even on pages without [data-vfx-account].
+document.addEventListener('DOMContentLoaded', () => {
+  const toggle = document.getElementById('navToggle');
+  const links = document.querySelector('.nav-links');
+  if (!toggle || !links) return;
+  toggle.addEventListener('click', () => {
+    links.classList.toggle('mobile-open');
+  });
+  // Close the menu after tapping a link, so it doesn't stay open on navigation
+  links.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => links.classList.remove('mobile-open'));
+  });
+  // Close if the viewport is resized back to desktop width
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 900) links.classList.remove('mobile-open');
+  });
+});
+
 // Renders a "← Back" icon button into el. Defaults to browser back if there's
 // same-site history to go to, otherwise falls back to /dashboard.html.
 VFX.renderBackButton = function (el, fallbackHref = '/dashboard.html') {

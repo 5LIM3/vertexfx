@@ -141,7 +141,42 @@
   .status-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px var(--green-soft);}
   .statusbar .push{margin-left:auto;}
 
-  @media (max-width:1200px){ .terminal-grid{grid-template-columns:1fr;} .watchlist-panel,.order-panel{height:auto;position:static;} .navlinks{display:none;} }
+  @media (max-width:1200px){
+    .terminal-grid{grid-template-columns:1fr;}
+    .watchlist-panel,.order-panel{height:auto;position:static;}
+    .navlinks{display:none;}
+    .nav-toggle-db{display:flex !important;}
+    /* Chart + trading UI first on mobile, long watchlist pushed to the bottom instead of forcing scroll-past */
+    .chart-panel{order:1;}
+    .order-panel{order:2;}
+    .watchlist-panel{order:3;max-height:340px;}
+  }
+  .nav-toggle-db{display:none;background:none;border:none;color:var(--text-0);font-size:20px;cursor:pointer;padding:4px 8px;}
+  .navlinks.mobile-open{display:flex !important;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:var(--bg-1);border-bottom:1px solid var(--border);padding:8px 16px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,0.5);}
+  .navlinks.mobile-open a{padding:12px 8px;}
+
+  @media (max-width:640px){
+    .topbar{flex-wrap:wrap;height:auto;padding:8px 12px;gap:8px;}
+    .brand img{height:18px;}
+    .topbar-right{gap:6px;flex-wrap:wrap;}
+    .acct{padding:5px 8px;}
+    .acct .bal{font-size:11.5px;}
+    .deposit-btn{padding:7px 11px;font-size:12px;}
+    .ticker-strip{padding:0 12px;height:32px;font-size:11px;}
+    .live-tag{font-size:11px;}
+    #clock{display:none;}
+    .chart-toolbar{flex-wrap:wrap;gap:8px;padding:8px 12px;}
+    .chart-header{flex-wrap:wrap;gap:10px;padding:8px 12px;}
+    .price-box{padding:6px 12px;}
+    .op-body{padding:12px;}
+    .positions-table{font-size:11px;}
+    .positions-table th,.positions-table td{padding:8px 10px;}
+    .depth-wrap{padding:10px 12px;}
+    .statusbar{font-size:10.5px;padding:8px 12px;gap:12px;}
+    .op-tabs button{font-size:12px;}
+  }
+  /* Tables with many columns need horizontal scroll on narrow screens rather than squeezing/breaking */
+  .bottom-tabs > div{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 </style>
 </head>
 <body>
@@ -149,6 +184,7 @@
 <header class="topbar">
   <div id="backBtnSlot" style="margin-right:2px;"></div>
   <a href="/" class="brand"><img src="/assets/logo-full.svg" alt="VertexFX"></a>
+  <button class="nav-toggle-db" id="navToggleDb" aria-label="Menu">&#9776;</button>
   <nav class="navlinks">
     <a class="active">Terminal</a>
     <a href="/wallet.html">Wallet</a>
@@ -686,6 +722,15 @@ async function init(){
   setInterval(refreshPositions, 4000);
 }
 VFX.renderBackButton(document.getElementById('backBtnSlot'), '/');
+(()=>{
+  const toggle = document.getElementById('navToggleDb');
+  const links = document.querySelector('.navlinks');
+  if(toggle && links){
+    toggle.addEventListener('click', ()=> links.classList.toggle('mobile-open'));
+    links.querySelectorAll('a').forEach(a=> a.addEventListener('click', ()=> links.classList.remove('mobile-open')));
+    window.addEventListener('resize', ()=>{ if(window.innerWidth > 1200) links.classList.remove('mobile-open'); });
+  }
+})();
 init();
 </script>
 </body>

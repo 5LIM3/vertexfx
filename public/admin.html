@@ -15,6 +15,21 @@
   .admin-side button.active{color:var(--text-0);background:var(--bg-2);border-color:var(--accent);}
   .admin-main{padding:28px 32px;overflow-x:auto;}
   .admin-main h2{font-size:20px;margin-bottom:18px;}
+
+  @media(max-width:900px){
+    .admin-shell{grid-template-columns:1fr;min-height:auto;}
+    .admin-side{border-right:none;border-bottom:1px solid var(--border);padding:10px 0;display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;}
+    .admin-side button{width:auto;flex-shrink:0;padding:10px 16px;border-left:none;border-bottom:2px solid transparent;}
+    .admin-side button.active{border-color:var(--accent);}
+    .admin-main{padding:18px 16px;}
+    .stat-cards{grid-template-columns:1fr 1fr;}
+    table.admin-table{font-size:11.5px;}
+    table.admin-table th,table.admin-table td{padding:8px 10px;}
+    .announce-row{flex-direction:column;align-items:stretch;}
+  }
+  @media(max-width:480px){
+    .stat-cards{grid-template-columns:1fr;}
+  }
   .stat-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
   .stat-cards .card{padding:18px;}
   .stat-cards .num{font-family:var(--font-mono);font-size:24px;font-weight:700;}
@@ -46,6 +61,7 @@
     <div id="backBtnSlot" style="margin-right:4px;"></div>
     <a href="/"><img src="/assets/logo-full.svg" class="brand-logo" alt="VertexFX" style="height:22px;"></a>
     <div class="nav-links"><a href="/dashboard.html">Terminal</a></div>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
     <div class="nav-cta" data-vfx-account></div>
   </div>
 </nav>
@@ -73,10 +89,10 @@
     <section class="tab-panel" id="tab-users">
       <h2>Users</h2>
       <p style="color:var(--text-2);font-size:12px;margin-bottom:16px;">Both balance columns are simulated ledger values — no real funds exist in either.</p>
-      <table class="admin-table" id="usersTable">
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table class="admin-table" id="usersTable">
         <thead><tr><th>Harbor ID</th><th>Name / Email</th><th>Demo balance</th><th>Real balance</th><th>Verified</th><th>2FA</th><th>KYC</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody></tbody>
-      </table>
+      </table></div>
     </section>
 
     <section class="tab-panel" id="tab-ledger">
@@ -87,36 +103,36 @@
         <button class="mini-btn" data-filter="withdrawal">Withdrawals</button>
         <button class="mini-btn" data-filter="pending">Pending only</button>
       </div>
-      <table class="admin-table" id="ledgerTable">
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table class="admin-table" id="ledgerTable">
         <thead><tr><th>Date</th><th>User</th><th>Account</th><th>Type</th><th>Method</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody></tbody>
-      </table>
+      </table></div>
     </section>
 
     <section class="tab-panel" id="tab-positions">
       <h2>Open positions (all users)</h2>
-      <table class="admin-table" id="positionsTable">
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table class="admin-table" id="positionsTable">
         <thead><tr><th>User</th><th>Account</th><th>Symbol</th><th>Side</th><th>Lots</th><th>Entry</th><th>Live</th><th>P/L</th><th>Opened</th></tr></thead>
         <tbody></tbody>
-      </table>
+      </table></div>
     </section>
 
     <section class="tab-panel" id="tab-market">
       <h2>Market status &amp; controls</h2>
       <p style="color:var(--text-1);font-size:12.5px;margin-bottom:16px;">The simulation runs independently of the real reference price once bootstrapped — these controls bias where it drifts next. No real funds or real markets are affected.</p>
       <button class="btn btn-outline" id="resetAllBtn" style="margin-bottom:16px;">↺ Reset All Symbols to Live</button>
-      <table class="admin-table" id="marketTable">
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table class="admin-table" id="marketTable">
         <thead><tr><th>Symbol</th><th>Class</th><th>Live feed status</th><th>Real reference</th><th>Simulation price</th><th>Regime</th><th>Controls</th><th>Trading</th><th>Leverage</th></tr></thead>
         <tbody></tbody>
-      </table>
+      </table></div>
     </section>
 
     <section class="tab-panel" id="tab-kyc">
       <h2>KYC review queue</h2>
-      <table class="admin-table" id="kycTable">
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table class="admin-table" id="kycTable">
         <thead><tr><th>User</th><th>Status</th><th>Note</th><th>Submitted</th><th>Actions</th></tr></thead>
         <tbody></tbody>
-      </table>
+      </table></div>
     </section>
 
     <section class="tab-panel" id="tab-announcements">
@@ -125,10 +141,10 @@
         <input type="text" id="newAnnouncement" placeholder="e.g. Scheduled maintenance Sunday 2–4am UTC" class="field" style="padding:10px;border-radius:8px;background:var(--bg-2);border:1px solid var(--border);color:var(--text-0);">
         <button class="btn btn-primary" id="postAnnouncementBtn">Post</button>
       </div>
-      <table class="admin-table" id="announcementsTable">
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table class="admin-table" id="announcementsTable">
         <thead><tr><th>Message</th><th>Status</th><th>Posted</th><th>Actions</th></tr></thead>
         <tbody></tbody>
-      </table>
+      </table></div>
     </section>
   </main>
 </div>
