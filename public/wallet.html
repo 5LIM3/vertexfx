@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wallet — VertexFX</title>
+<link rel="icon" href="/assets/logo-mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/marketing.css">
+</head>
+<body>
+<nav class="site-nav">
+  <div class="container">
+    <div id="backBtnSlot" style="margin-right:4px;"></div>
+    <a href="/"><img src="/assets/logo-full.svg" class="brand-logo" alt="VertexFX" style="height:22px;"></a>
+    <div class="nav-links">
+      <a href="/dashboard.html">Terminal</a>
+      <a href="/wallet.html" class="active">Wallet</a>
+      <a href="/instruments.html">Instruments</a>
+    </div>
+    <div class="nav-cta" data-vfx-account></div>
+  </div>
+</nav>
+
+<section class="section" style="padding-top:40px;">
+  <div class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <h1 style="font-size:26px;">Wallet <span id="accountBadge" style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:6px;vertical-align:middle;margin-left:8px;"></span></h1>
+      <div id="accountSwitcher"></div>
+    </div>
+    <p style="color:var(--text-2);font-size:12px;margin-bottom:24px;">Both Demo and Real accounts are 100% simulated — no real money is ever involved in either. "Real" only means it starts at $0 with no welcome bonus, same as a live account would before funding.</p>
+    <div class="wallet-grid">
+      <div class="card">
+        <h3>Balance</h3>
+        <div class="balance-display" id="balanceVal">$0.00</div>
+        <div class="balance-sub" id="balanceSub">Free margin: —</div>
+
+        <div class="tab-row">
+          <button class="tab-btn active" data-tab="deposit">Deposit</button>
+          <button class="tab-btn" data-tab="withdraw">Withdraw</button>
+        </div>
+
+        <div class="form-error" id="walletError"></div>
+        <div class="form-success" id="walletSuccess"></div>
+
+        <form id="walletForm">
+          <div id="methodLabel" style="font-size:10.5px;color:var(--text-1);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:8px;">Deposit method</div>
+          <div class="method-row" id="methodRow">
+            <div class="method-chip active" data-method="card">💳 Card</div>
+            <div class="method-chip" data-method="bank_transfer">🏦 Bank transfer</div>
+            <div class="method-chip" data-method="crypto">◆ Crypto</div>
+          </div>
+
+          <div id="methodDetails-card" class="method-details">
+            <div class="field"><label>Card number</label><input type="text" id="cardNumber" placeholder="4242 4242 4242 4242" maxlength="19"></div>
+            <div style="display:flex;gap:10px;">
+              <div class="field" style="flex:1;"><label>Expiry</label><input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5"></div>
+              <div class="field" style="flex:1;"><label>CVV</label><input type="text" id="cardCvv" placeholder="123" maxlength="4"></div>
+            </div>
+            <p style="font-size:11px;color:var(--text-2);margin-bottom:0;">Test card that passes validation: 4242 4242 4242 4242, any future expiry, any 3-digit CVV.</p>
+          </div>
+
+          <div id="methodDetails-bank_transfer" class="method-details" style="display:none;">
+            <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:12.5px;color:var(--text-1);margin-bottom:14px;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Beneficiary</span><b style="color:var(--text-0);">VertexFX Demo Escrow</b></div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Account number</span><b class="num" style="color:var(--text-0);">0001 2345 6789</b></div>
+              <div style="display:flex;justify-content:space-between;"><span>Reference</span><b class="num" style="color:var(--text-0);" id="bankRef">—</b></div>
+            </div>
+            <p style="font-size:11px;color:var(--text-2);margin-bottom:14px;">Demo only — this account does not exist. Submitting below simulates the transfer instantly.</p>
+          </div>
+
+          <div id="methodDetails-crypto" class="method-details" style="display:none;">
+            <div class="field">
+              <label>Network</label>
+              <select id="cryptoNetwork">
+                <option value="USDT-TRC20">USDT (TRC-20)</option>
+                <option value="USDT-ERC20">USDT (ERC-20)</option>
+                <option value="BTC">Bitcoin</option>
+                <option value="ETH">Ethereum</option>
+              </select>
+            </div>
+            <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:11.5px;color:var(--text-1);margin-bottom:14px;word-break:break-all;">
+              <div style="margin-bottom:4px;color:var(--text-2);">Demo deposit address</div>
+              <b class="num" style="color:var(--text-0);">TDemoVfxAddr8f3k29xNqPz61yLmWv7Rt4Hc</b>
+            </div>
+            <label class="upload-slot" id="proofSlot" style="border:1.5px dashed var(--border);border-radius:10px;padding:16px;text-align:center;margin-bottom:14px;cursor:pointer;display:block;">
+              <div style="font-size:20px;margin-bottom:4px;">📎</div>
+              <div style="font-size:12.5px;">Upload screenshot proof of deposit</div>
+              <div style="font-size:11px;color:var(--text-2);margin-top:4px;" id="proofName">No file selected</div>
+              <input type="file" id="proofFile" accept="image/*" style="display:none;">
+            </label>
+            <p style="font-size:11px;color:var(--text-2);margin-bottom:14px;">Demo only — do not send real crypto to this address. Submitting puts this deposit into <b>pending</b> until an admin reviews your proof and approves it.</p>
+          </div>
+
+          <div class="field">
+            <label for="amount" id="amountLabel">Deposit amount (USD)</label>
+            <input type="number" id="amount" min="1" step="0.01" required placeholder="1000.00">
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" id="walletSubmitBtn">Deposit funds</button>
+        </form>
+        <p style="margin-top:14px;color:var(--text-2);font-size:11.5px;">Simulated flow — writes to a mock ledger. No real payment processor is contacted.</p>
+      </div>
+
+      <div class="card" id="ledger">
+        <h3>Transaction history</h3>
+        <table class="ledger-table">
+          <thead><tr><th>Date</th><th>Type</th><th>Method</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody id="ledgerBody"><tr><td colspan="5" style="color:var(--text-2);">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="/js/vfx-common.js"></script>
+<script>VFX.renderBackButton(document.getElementById("backBtnSlot"));</script>
+<script>
+let currentTab = 'deposit';
+let currentMethod = 'card';
+
+async function init(){
+  const user = await VFX.requireAuthOrRedirect();
+  if(!user) return;
+  renderAccountUI();
+  VFX.renderAccountSwitcher(document.getElementById('accountSwitcher'), async ()=>{
+    renderAccountUI();
+    await refreshWallet();
+    await refreshLedger();
+  });
+  await refreshWallet();
+  await refreshLedger();
+
+  if(window.location.hash === '#ledger'){
+    const el = document.getElementById('ledger');
+    setTimeout(()=>{
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      el.style.transition = 'box-shadow .3s';
+      el.style.boxShadow = '0 0 0 2px var(--accent)';
+      setTimeout(()=>{ el.style.boxShadow = 'none'; }, 1600);
+    }, 200);
+  }
+
+  // Keep balance and transaction history live without the user needing to refresh —
+  // matters most right after an admin approves a pending deposit/withdrawal.
+  setInterval(refreshWallet, 1000);
+  setInterval(refreshLedger, 1000);
+}
+
+function renderAccountUI(){
+  const acc = VFX.accountType();
+  const badge = document.getElementById('accountBadge');
+  if(acc === 'real'){
+    badge.textContent = 'REAL ACCOUNT';
+    badge.style.background = 'rgba(14,203,129,0.14)';
+    badge.style.color = '#0ECB81';
+  } else {
+    badge.textContent = 'DEMO ACCOUNT';
+    badge.style.background = 'rgba(240,185,11,0.14)';
+    badge.style.color = '#F0B90B';
+  }
+}
+
+async function refreshWallet(){
+  try{
+    const w = await VFX.api('/api/wallet?account=' + VFX.accountType());
+    document.getElementById('balanceVal').textContent = VFX.fmtMoney(w.balance);
+    document.getElementById('balanceSub').textContent = `Free margin: ${VFX.fmtMoney(w.freeMargin)} · Locked: ${VFX.fmtMoney(w.lockedMargin)}`;
+  }catch(e){}
+}
+
+async function refreshLedger(){
+  try{
+    const { entries } = await VFX.api('/api/wallet/ledger?account=' + VFX.accountType());
+    document.getElementById('ledgerBody').innerHTML = entries.map(e=>{
+      const d = new Date(e.created_at).toLocaleString();
+      return `<tr>
+        <td>${d}</td>
+        <td style="text-transform:capitalize;">${e.type.replace('_',' ')}</td>
+        <td style="text-transform:capitalize;">${(e.method||'—').replace('_',' ')}</td>
+        <td class="num" style="font-family:var(--font-mono);color:${e.amount>=0?'var(--green)':'var(--red)'};">${e.amount>=0?'+':''}${VFX.fmtMoney(e.amount)}</td>
+        <td><span class="status-chip status-${e.status}">${e.status}</span></td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="5" style="color:var(--text-2);">No transactions yet.</td></tr>';
+  }catch(e){}
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentTab = btn.dataset.tab;
+    document.getElementById('methodLabel').textContent = currentTab==='deposit' ? 'Deposit method' : 'Withdrawal method';
+    document.getElementById('amountLabel').textContent = currentTab==='deposit' ? 'Deposit amount (USD)' : 'Withdrawal amount (USD)';
+    document.getElementById('walletSubmitBtn').textContent = currentTab==='deposit' ? 'Deposit funds' : 'Request withdrawal';
+  });
+});
+
+document.querySelectorAll('.method-chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('.method-chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    currentMethod = chip.dataset.method;
+    document.querySelectorAll('.method-details').forEach(d=>d.style.display='none');
+    const panel = document.getElementById('methodDetails-'+currentMethod);
+    if(panel) panel.style.display='block';
+  });
+});
+document.getElementById('bankRef').textContent = 'VFX-' + Math.random().toString(36).slice(2,8).toUpperCase();
+
+const proofFile = document.getElementById('proofFile');
+const proofSlot = document.getElementById('proofSlot');
+proofFile.addEventListener('change', ()=>{
+  if(proofFile.files[0]){
+    document.getElementById('proofName').textContent = proofFile.files[0].name;
+    proofSlot.style.borderStyle = 'solid';
+    proofSlot.style.borderColor = 'var(--green)';
+  }
+});
+
+document.getElementById('walletForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const errBox = document.getElementById('walletError');
+  const okBox = document.getElementById('walletSuccess');
+  errBox.style.display='none'; okBox.style.display='none';
+  const amount = parseFloat(document.getElementById('amount').value);
+  const endpoint = currentTab==='deposit' ? '/api/wallet/deposit' : '/api/wallet/withdraw';
+
+  const payload = { amount, method: currentMethod, accountType: VFX.accountType() };
+  if(currentTab==='deposit' && currentMethod==='card'){
+    payload.card = {
+      cardNumber: document.getElementById('cardNumber').value,
+      expiry: document.getElementById('cardExpiry').value,
+      cvv: document.getElementById('cardCvv').value,
+    };
+  }
+  if(currentTab==='deposit' && currentMethod==='crypto'){
+    if(!proofFile.files[0]){
+      errBox.textContent = 'Upload a screenshot proof of your deposit before submitting.';
+      errBox.style.display='block';
+      return;
+    }
+    payload.crypto = {
+      network: document.getElementById('cryptoNetwork').value,
+      proofFilename: proofFile.files[0].name,
+    };
+  }
+
+  try{
+    const res = await VFX.api(endpoint, { method:'POST', body: JSON.stringify(payload) });
+    if(currentTab==='deposit' && res.status==='pending'){
+      okBox.textContent = res.message || `Deposit of ${VFX.fmtMoney(amount)} submitted for review. Reference ${res.reference}. Your balance will update once an admin approves it.`;
+    } else if(currentTab==='deposit'){
+      okBox.textContent = `Deposit of ${VFX.fmtMoney(amount)} completed. Reference ${res.reference}.`;
+    } else {
+      okBox.textContent = `Withdrawal of ${VFX.fmtMoney(amount)} submitted (pending). Reference ${res.reference}.`;
+    }
+    okBox.style.display='block';
+    document.getElementById('amount').value='';
+    if(proofFile.files[0]){ proofFile.value=''; document.getElementById('proofName').textContent='No file selected'; proofSlot.style.borderStyle='dashed'; proofSlot.style.borderColor='var(--border)'; }
+    await refreshWallet();
+    await refreshLedger();
+  }catch(err){
+    errBox.textContent = err.message;
+    errBox.style.display='block';
+  }
+});
+
+init();
+</script>
+</body>
+</html>

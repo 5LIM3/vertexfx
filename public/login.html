@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log in — VertexFX</title>
+<link rel="icon" href="/assets/logo-mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/marketing.css">
+</head>
+<body>
+<nav class="site-nav">
+  <div class="container">
+    <a href="/"><img src="/assets/logo-full.svg" class="brand-logo" alt="VertexFX" style="height:22px;"></a>
+    <div class="nav-links"></div>
+    <div class="nav-cta"><a href="/signup.html" class="btn btn-ghost">Create account instead</a></div>
+  </div>
+</nav>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <img src="/assets/logo-mark.svg" class="logo-mark" alt="">
+    <h1 id="cardTitle">Welcome back</h1>
+    <p class="sub" id="cardSub">Log in to your simulated trading account.</p>
+
+    <div class="form-error" id="formError"></div>
+    <div class="form-success" id="formSuccess"></div>
+
+    <form id="loginForm">
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" required placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" required placeholder="Your password">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block btn-lg" id="submitBtn">Log in</button>
+    </form>
+
+    <form id="twofaForm" style="display:none;">
+      <div class="field">
+        <label for="code">Authentication code</label>
+        <input type="text" id="code" required placeholder="6-digit code or backup code" autocomplete="one-time-code">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block btn-lg" id="twofaBtn">Verify &amp; log in</button>
+    </form>
+
+    <p class="auth-switch" id="resendRow" style="display:none;"><a href="#" id="resendLink">Resend verification email</a></p>
+    <p class="auth-switch">Don't have an account? <a href="/signup.html">Create one</a></p>
+  </div>
+</div>
+
+<script src="/js/vfx-common.js"></script>
+<script>
+let pendingEmail = '';
+let tempToken = '';
+
+document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const errBox = document.getElementById('formError');
+  const okBox = document.getElementById('formSuccess');
+  const resendRow = document.getElementById('resendRow');
+  errBox.style.display='none'; okBox.style.display='none'; resendRow.style.display='none';
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Logging in…';
+  try{
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    pendingEmail = email;
+    const data = await VFX.api('/api/auth/login', { method:'POST', body: JSON.stringify({ email, password }) });
+    if(data.requires2fa){
+      tempToken = data.tempToken;
+      document.getElementById('cardTitle').textContent = 'Two-factor authentication';
+      document.getElementById('cardSub').textContent = 'Enter the code from your authenticator app.';
+      document.getElementById('loginForm').style.display='none';
+      document.getElementById('twofaForm').style.display='flex';
+      document.getElementById('twofaForm').style.flexDirection='column';
+      btn.disabled=false; btn.textContent='Log in';
+      return;
+    }
+    VFX.setToken(data.token);
+    window.location.href = '/dashboard.html';
+  }catch(err){
+    errBox.textContent = err.message;
+    errBox.style.display='block';
+    if(err.message && err.message.toLowerCase().includes('verify')) resendRow.style.display='block';
+    btn.disabled=false; btn.textContent='Log in';
+  }
+});
+
+document.getElementById('twofaForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const errBox = document.getElementById('formError');
+  errBox.style.display='none';
+  const btn = document.getElementById('twofaBtn');
+  btn.disabled = true; btn.textContent = 'Verifying…';
+  try{
+    const code = document.getElementById('code').value.trim();
+    const data = await VFX.api('/api/auth/2fa/verify', { method:'POST', body: JSON.stringify({ tempToken, code }) });
+    VFX.setToken(data.token);
+    window.location.href = '/dashboard.html';
+  }catch(err){
+    errBox.textContent = err.message;
+    errBox.style.display='block';
+    btn.disabled=false; btn.textContent='Verify & log in';
+  }
+});
+
+document.getElementById('resendLink').addEventListener('click', async (e)=>{
+  e.preventDefault();
+  const okBox = document.getElementById('formSuccess');
+  try{
+    await VFX.api('/api/auth/resend-verification', { method:'POST', body: JSON.stringify({ email: pendingEmail }) });
+    okBox.textContent = 'If that account exists and is unverified, a new email has been sent.';
+    okBox.style.display='block';
+  }catch(err){}
+});
+</script>
+</body>
+</html>

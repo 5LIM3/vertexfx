@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <linearGradient id="vfxGradMark" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#A855F7"/>
+      <stop offset="0.55" stop-color="#7C3AED"/>
+      <stop offset="1" stop-color="#4C1D95"/>
+    </linearGradient>
+  </defs>
+  <!-- left V stroke -->
+  <path d="M28 40 L100 130 L128 96 L146 118 L100 175 L10 62 Z" fill="url(#vfxGradMark)"/>
+  <!-- right ascending diagonal (the "X"/arrow half) -->
+  <path d="M146 118 L188 40 L150 40 L118 100 Z" fill="url(#vfxGradMark)"/>
+  <path d="M100 175 L165 62 L190 62 L128 175 Z" fill="url(#vfxGradMark)"/>
+  <!-- white accent slash -->
+  <path d="M150 96 L190 165 L155 165 L118 96 Z" fill="#FFFFFF"/>
+</svg>

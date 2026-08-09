@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instruments — VertexFX</title>
+<link rel="icon" href="/assets/logo-mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/marketing.css">
+</head>
+<body>
+<nav class="site-nav">
+  <div class="container">
+    <div id="backBtnSlot" style="margin-right:4px;"></div>
+    <a href="/"><img src="/assets/logo-full.svg" class="brand-logo" alt="VertexFX" style="height:22px;"></a>
+    <div class="nav-links">
+      <a href="/index.html">Home</a>
+      <a href="/instruments.html" class="active">Instruments</a>
+      <a href="/about.html">About</a>
+    </div>
+    <div class="nav-cta" data-vfx-account></div>
+  </div>
+</nav>
+
+<header class="hero" style="padding:56px 0 34px;">
+  <div class="container">
+    <h1 style="font-size:34px;">Simulated instruments</h1>
+    <p>Where a live feed is available (crypto, forex), we show the real market price next to VertexFX's own simulation price — trades always execute against the simulation, never the real price. Spreads and leverage are demo values.</p>
+  </div>
+</header>
+
+<section class="section" style="padding-top:0;">
+  <div class="container">
+    <table class="instr-table" id="instrTable">
+      <thead>
+        <tr><th>Symbol</th><th>Class</th><th>Real market</th><th>Simulation price</th><th>Sim change</th><th>Typical spread</th><th>Max leverage</th></tr>
+      </thead>
+      <tbody id="instrBody">
+        <tr><td colspan="7" style="color:var(--text-2);">Loading prices…</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:18px;color:var(--text-2);font-size:12.5px;">All figures update from the server's live simulation and refresh every few seconds.</p>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>© 2026 VertexFX (fictional demo project). Built by 5LIM3STACKDEVS.</span>
+      <span>Not a real financial services company.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="/js/vfx-common.js"></script>
+<script>VFX.renderBackButton(document.getElementById("backBtnSlot"));</script>
+<script>
+const CAT_LEVERAGE = { forex: '1:500', metals: '1:200', crypto: '1:20', indices: '1:100' };
+const CAT_SPREAD = {
+  EURUSD:'0.1 pips',GBPUSD:'0.2 pips',USDJPY:'0.2 pips',AUDUSD:'0.2 pips',USDCAD:'0.3 pips',USDCHF:'0.3 pips',
+  XAUUSD:'$0.25',XAGUSD:'$0.02',BTCUSD:'$15',ETHUSD:'$2',SOLUSD:'$0.05',US30:'2.0 pts',US100:'1.2 pts',SPX500:'0.4 pts'
+};
+async function loadInstruments(){
+  try{
+    const { symbols, snapshot } = await VFX.api('/api/trading/symbols');
+    const rows = symbols.map(m=>{
+      const s = snapshot[m.sym];
+      const chg = s.chgPct;
+      const hasLive = s.source && s.source !== 'simulated';
+      return `<tr>
+        <td class="sym">${m.sym}</td>
+        <td><span class="cat-pill">${m.cat}</span></td>
+        <td class="num" style="font-family:var(--font-mono);">${hasLive ? s.livePrice.toFixed(m.digits) : '<span style="color:var(--text-2);">— no live feed —</span>'}</td>
+        <td class="num" style="font-family:var(--font-mono);font-weight:600;">${s.price.toFixed(m.digits)}</td>
+        <td class="num" style="font-family:var(--font-mono);color:${chg>=0?'var(--green)':'var(--red)'};">${chg>=0?'+':''}${chg.toFixed(2)}%</td>
+        <td>${CAT_SPREAD[m.sym]||'—'}</td>
+        <td>${CAT_LEVERAGE[m.cat]}</td>
+      </tr>`;
+    }).join('');
+    document.getElementById('instrBody').innerHTML = rows;
+  }catch(e){
+    document.getElementById('instrBody').innerHTML = `<tr><td colspan="7" style="color:var(--red);">Couldn't load live prices — is the server running?</td></tr>`;
+  }
+}
+loadInstruments();
+setInterval(loadInstruments, 4000);
+</script>
+</body>
+</html>

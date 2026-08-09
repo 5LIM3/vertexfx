@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Security — VertexFX</title>
+<link rel="icon" href="/assets/logo-mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/marketing.css">
+<style>
+  .qr-box{background:#fff;padding:16px;border-radius:10px;display:inline-block;margin:14px 0;}
+  .qr-box img{width:180px;height:180px;display:block;}
+  .secret-code{font-family:var(--font-mono);background:var(--bg-2);border:1px solid var(--border);padding:10px 14px;border-radius:8px;font-size:13px;word-break:break-all;margin-bottom:14px;}
+  .backup-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-family:var(--font-mono);font-size:13px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:14px;margin:14px 0;}
+  .kyc-status-badge{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:20px;font-size:12.5px;font-weight:600;}
+  .kyc-not_started{background:var(--bg-3);color:var(--text-1);}
+  .kyc-pending{background:rgba(240,185,11,0.12);color:var(--amber);}
+  .kyc-approved{background:rgba(14,203,129,0.12);color:var(--green);}
+  .kyc-rejected{background:rgba(246,70,93,0.12);color:var(--red);}
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <div class="container">
+    <div id="backBtnSlot" style="margin-right:4px;"></div>
+    <a href="/"><img src="/assets/logo-full.svg" class="brand-logo" alt="VertexFX" style="height:22px;"></a>
+    <div class="nav-links">
+      <a href="/dashboard.html">Terminal</a>
+      <a href="/wallet.html">Wallet</a>
+      <a href="/security.html" class="active">Security</a>
+    </div>
+    <div class="nav-cta" data-vfx-account></div>
+  </div>
+</nav>
+
+<section class="section" style="padding-top:40px;">
+  <div class="container" style="max-width:640px;">
+    <h1 style="font-size:26px;margin-bottom:24px;">Security</h1>
+
+    <div class="card" style="margin-bottom:20px;">
+      <h3>Identity verification (KYC)</h3>
+      <p style="color:var(--text-1);font-size:13.5px;margin-bottom:14px;">Demo flow only — no real documents are processed or sent to a third party.</p>
+      <div id="kycSummary">Loading…</div>
+      <a href="/kyc.html" class="btn btn-ghost" style="margin-top:14px;">Manage KYC</a>
+    </div>
+
+    <div class="card">
+      <h3>Two-factor authentication</h3>
+      <p style="color:var(--text-1);font-size:13.5px;margin-bottom:14px;" id="twofaDesc">Loading…</p>
+
+      <div class="form-error" id="twofaError"></div>
+      <div class="form-success" id="twofaSuccess"></div>
+
+      <div id="twofaOffPanel" style="display:none;">
+        <button class="btn btn-primary" id="startSetupBtn">Enable 2FA</button>
+      </div>
+
+      <div id="twofaSetupPanel" style="display:none;">
+        <p style="font-size:13px;color:var(--text-1);">Scan this QR code with Google Authenticator, Authy, or any TOTP app:</p>
+        <div class="qr-box"><img id="qrImg" src="" alt="QR code"></div>
+        <p style="font-size:12px;color:var(--text-1);">Or enter this secret manually:</p>
+        <div class="secret-code" id="secretText"></div>
+        <div class="field">
+          <label for="enableCode">Enter the 6-digit code from your app</label>
+          <input type="text" id="enableCode" placeholder="123456">
+        </div>
+        <button class="btn btn-primary" id="confirmEnableBtn">Confirm &amp; enable</button>
+      </div>
+
+      <div id="backupCodesPanel" style="display:none;">
+        <p style="font-size:13px;color:var(--text-0);font-weight:600;margin-bottom:6px;">Save these backup codes — each works once if you lose your device:</p>
+        <div class="backup-grid" id="backupCodesGrid"></div>
+        <button class="btn btn-ghost" id="doneBackupBtn">I've saved these — done</button>
+      </div>
+
+      <div id="twofaOnPanel" style="display:none;">
+        <div class="trust-badge" style="margin-bottom:16px;"><b>2FA is active</b> on your account</div>
+        <div class="field"><label for="disablePw">Password</label><input type="password" id="disablePw"></div>
+        <div class="field"><label for="disableCode">Current 6-digit code</label><input type="text" id="disableCode" placeholder="123456"></div>
+        <button class="btn btn-outline" id="disableBtn">Disable 2FA</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="/js/vfx-common.js"></script>
+<script>VFX.renderBackButton(document.getElementById("backBtnSlot"));</script>
+<script>
+let user;
+async function init(){
+  user = await VFX.requireAuthOrRedirect();
+  if(!user) return;
+  renderKyc();
+  render2fa();
+}
+
+function renderKyc(){
+  const badgeClass = 'kyc-' + user.kycStatus;
+  const labelMap = { not_started:'Not started', pending:'Pending review', approved:'Verified', rejected:'Rejected' };
+  document.getElementById('kycSummary').innerHTML = `<span class="kyc-status-badge ${badgeClass}">${labelMap[user.kycStatus] || user.kycStatus}</span>`;
+}
+
+function render2fa(){
+  document.getElementById('twofaDesc').textContent = user.totpEnabled
+    ? 'Two-factor authentication adds a second step (an authenticator app code) when logging in.'
+    : 'Add a second layer of protection using an authenticator app like Google Authenticator or Authy.';
+  document.getElementById('twofaOffPanel').style.display = user.totpEnabled ? 'none' : 'block';
+  document.getElementById('twofaOnPanel').style.display = user.totpEnabled ? 'block' : 'none';
+}
+
+document.getElementById('startSetupBtn').addEventListener('click', async ()=>{
+  const errBox = document.getElementById('twofaError');
+  errBox.style.display='none';
+  try{
+    const data = await VFX.api('/api/2fa/setup', { method:'POST' });
+    document.getElementById('qrImg').src = data.qr;
+    document.getElementById('secretText').textContent = data.secret;
+    document.getElementById('twofaOffPanel').style.display='none';
+    document.getElementById('twofaSetupPanel').style.display='block';
+  }catch(err){ errBox.textContent = err.message; errBox.style.display='block'; }
+});
+
+document.getElementById('confirmEnableBtn').addEventListener('click', async ()=>{
+  const errBox = document.getElementById('twofaError');
+  errBox.style.display='none';
+  try{
+    const code = document.getElementById('enableCode').value.trim();
+    const data = await VFX.api('/api/2fa/enable', { method:'POST', body: JSON.stringify({ code }) });
+    document.getElementById('twofaSetupPanel').style.display='none';
+    document.getElementById('backupCodesGrid').innerHTML = data.backupCodes.map(c=>`<div>${c}</div>`).join('');
+    document.getElementById('backupCodesPanel').style.display='block';
+    user.totpEnabled = true;
+  }catch(err){ errBox.textContent = err.message; errBox.style.display='block'; }
+});
+
+document.getElementById('doneBackupBtn').addEventListener('click', ()=>{
+  document.getElementById('backupCodesPanel').style.display='none';
+  render2fa();
+  document.getElementById('twofaSuccess').textContent = '2FA is now enabled on your account.';
+  document.getElementById('twofaSuccess').style.display='block';
+});
+
+document.getElementById('disableBtn').addEventListener('click', async ()=>{
+  const errBox = document.getElementById('twofaError');
+  errBox.style.display='none';
+  try{
+    const password = document.getElementById('disablePw').value;
+    const code = document.getElementById('disableCode').value.trim();
+    await VFX.api('/api/2fa/disable', { method:'POST', body: JSON.stringify({ password, code }) });
+    user.totpEnabled = false;
+    render2fa();
+  }catch(err){ errBox.textContent = err.message; errBox.style.display='block'; }
+});
+
+init();
+</script>
+</body>
+</html>

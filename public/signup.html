@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create account — VertexFX</title>
+<link rel="icon" href="/assets/logo-mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/marketing.css">
+</head>
+<body>
+<nav class="site-nav">
+  <div class="container">
+    <a href="/"><img src="/assets/logo-full.svg" class="brand-logo" alt="VertexFX" style="height:22px;"></a>
+    <div class="nav-links"></div>
+    <div class="nav-cta"><a href="/login.html" class="btn btn-ghost">Log in instead</a></div>
+  </div>
+</nav>
+
+<div class="auth-wrap">
+  <div class="auth-card" id="authCard">
+    <img src="/assets/logo-mark.svg" class="logo-mark" alt="">
+    <h1>Create your demo account</h1>
+    <p class="sub">Starts with a $10,000 simulated balance. No real funds, no real KYC required.</p>
+
+    <div class="form-error" id="formError"></div>
+    <div class="form-success" id="formSuccess"></div>
+
+    <form id="signupForm">
+      <div class="field">
+        <label for="fullName">Full name</label>
+        <input type="text" id="fullName" required placeholder="Jane Doe">
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" required placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" required minlength="8" placeholder="At least 8 characters">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block btn-lg" id="submitBtn">Create account</button>
+    </form>
+    <p class="auth-switch">Already have an account? <a href="/login.html">Log in</a></p>
+  </div>
+</div>
+
+<script src="/js/vfx-common.js"></script>
+<script>
+document.getElementById('signupForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const errBox = document.getElementById('formError');
+  const okBox = document.getElementById('formSuccess');
+  errBox.style.display='none'; okBox.style.display='none';
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Creating account…';
+  try{
+    const fullName = document.getElementById('fullName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    await VFX.api('/api/auth/signup', { method:'POST', body: JSON.stringify({ fullName, email, password }) });
+    document.getElementById('signupForm').style.display = 'none';
+    okBox.textContent = `Account created. We sent a verification link to ${email} — click it, then come back and log in. (Running locally without SMTP configured? Check the server console for the link.)`;
+    okBox.style.display = 'block';
+  }catch(err){
+    errBox.textContent = err.message;
+    errBox.style.display='block';
+    btn.disabled=false; btn.textContent='Create account';
+  }
+});
+</script>
+</body>
+</html>

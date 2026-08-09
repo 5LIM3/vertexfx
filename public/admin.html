@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — VertexFX</title>
+<link rel="icon" href="/assets/logo-mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/marketing.css">
+<style>
+  .admin-shell{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 72px);}
+  .admin-side{border-right:1px solid var(--border);padding:22px 0;}
+  .admin-side button{display:block;width:100%;text-align:left;padding:11px 22px;background:none;border:none;color:var(--text-1);font-weight:600;font-size:13.5px;border-left:2px solid transparent;}
+  .admin-side button.active{color:var(--text-0);background:var(--bg-2);border-color:var(--accent);}
+  .admin-main{padding:28px 32px;overflow-x:auto;}
+  .admin-main h2{font-size:20px;margin-bottom:18px;}
+  .stat-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+  .stat-cards .card{padding:18px;}
+  .stat-cards .num{font-family:var(--font-mono);font-size:24px;font-weight:700;}
+  .stat-cards .lbl{font-size:12px;color:var(--text-1);margin-top:2px;}
+  table.admin-table{width:100%;border-collapse:collapse;background:var(--bg-1);border:1px solid var(--border);border-radius:10px;overflow:hidden;font-size:12.5px;}
+  table.admin-table th{text-align:left;padding:10px 14px;background:var(--bg-2);color:var(--text-2);font-size:10.5px;text-transform:uppercase;letter-spacing:0.4px;border-bottom:1px solid var(--border);}
+  table.admin-table td{padding:10px 14px;border-bottom:1px solid var(--border-soft);}
+  table.admin-table tr:last-child td{border-bottom:none;}
+  .pill{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:5px;text-transform:uppercase;}
+  .pill-green{background:var(--green-soft);color:var(--green);} .pill-red{background:var(--red-soft);color:var(--red);}
+  .pill-amber{background:rgba(240,185,11,0.12);color:var(--amber);} .pill-gray{background:var(--bg-3);color:var(--text-1);}
+  .mini-btn{background:var(--bg-3);border:1px solid var(--border);color:var(--text-0);padding:5px 10px;border-radius:6px;font-size:11.5px;font-weight:600;margin-right:4px;}
+  .mini-btn:hover{background:var(--border);}
+  .mini-btn.danger:hover{background:var(--red-soft);color:var(--red);}
+  .mini-btn.good:hover{background:var(--green-soft);color:var(--green);}
+  .toggle{width:38px;height:20px;border-radius:12px;background:var(--bg-3);border:1px solid var(--border);position:relative;cursor:pointer;flex-shrink:0;}
+  .toggle.on{background:var(--green);border-color:var(--green);}
+  .toggle::after{content:'';position:absolute;top:1px;left:1px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.15s;}
+  .toggle.on::after{transform:translateX(18px);}
+  .tab-panel{display:none;} .tab-panel.active{display:block;}
+  .lev-input{width:64px;background:var(--bg-2);border:1px solid var(--border);color:var(--text-0);border-radius:6px;padding:5px 7px;font-family:var(--font-mono);font-size:12px;}
+  .announce-row{display:flex;gap:10px;margin-bottom:12px;}
+  .announce-row input{flex:1;}
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <div class="container">
+    <div id="backBtnSlot" style="margin-right:4px;"></div>
+    <a href="/"><img src="/assets/logo-full.svg" class="brand-logo" alt="VertexFX" style="height:22px;"></a>
+    <div class="nav-links"><a href="/dashboard.html">Terminal</a></div>
+    <div class="nav-cta" data-vfx-account></div>
+  </div>
+</nav>
+
+<div id="gate" style="padding:60px;text-align:center;color:var(--text-1);">Checking admin access…</div>
+
+<div class="admin-shell" id="shell" style="display:none;">
+  <aside class="admin-side">
+    <button class="tab-btn active" data-tab="overview">System Health</button>
+    <button class="tab-btn" data-tab="users">Users</button>
+    <button class="tab-btn" data-tab="ledger">Deposits &amp; Withdrawals</button>
+    <button class="tab-btn" data-tab="positions">Open Positions</button>
+    <button class="tab-btn" data-tab="market">Market Status</button>
+    <button class="tab-btn" data-tab="kyc">KYC Queue</button>
+    <button class="tab-btn" data-tab="announcements">Announcements</button>
+  </aside>
+
+  <main class="admin-main">
+    <section class="tab-panel active" id="tab-overview">
+      <h2>System health</h2>
+      <div class="stat-cards" id="healthCards"></div>
+      <p style="color:var(--text-2);font-size:12px;">Auto-refreshes every 10s.</p>
+    </section>
+
+    <section class="tab-panel" id="tab-users">
+      <h2>Users</h2>
+      <p style="color:var(--text-2);font-size:12px;margin-bottom:16px;">Both balance columns are simulated ledger values — no real funds exist in either.</p>
+      <table class="admin-table" id="usersTable">
+        <thead><tr><th>Harbor ID</th><th>Name / Email</th><th>Demo balance</th><th>Real balance</th><th>Verified</th><th>2FA</th><th>KYC</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section class="tab-panel" id="tab-ledger">
+      <h2>Deposits &amp; withdrawals</h2>
+      <div style="margin-bottom:14px;display:flex;gap:8px;">
+        <button class="mini-btn" data-filter="all">All</button>
+        <button class="mini-btn" data-filter="deposit">Deposits</button>
+        <button class="mini-btn" data-filter="withdrawal">Withdrawals</button>
+        <button class="mini-btn" data-filter="pending">Pending only</button>
+      </div>
+      <table class="admin-table" id="ledgerTable">
+        <thead><tr><th>Date</th><th>User</th><th>Account</th><th>Type</th><th>Method</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section class="tab-panel" id="tab-positions">
+      <h2>Open positions (all users)</h2>
+      <table class="admin-table" id="positionsTable">
+        <thead><tr><th>User</th><th>Account</th><th>Symbol</th><th>Side</th><th>Lots</th><th>Entry</th><th>Live</th><th>P/L</th><th>Opened</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section class="tab-panel" id="tab-market">
+      <h2>Market status &amp; controls</h2>
+      <p style="color:var(--text-1);font-size:12.5px;margin-bottom:16px;">The simulation runs independently of the real reference price once bootstrapped — these controls bias where it drifts next. No real funds or real markets are affected.</p>
+      <button class="btn btn-outline" id="resetAllBtn" style="margin-bottom:16px;">↺ Reset All Symbols to Live</button>
+      <table class="admin-table" id="marketTable">
+        <thead><tr><th>Symbol</th><th>Class</th><th>Live feed status</th><th>Real reference</th><th>Simulation price</th><th>Regime</th><th>Controls</th><th>Trading</th><th>Leverage</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section class="tab-panel" id="tab-kyc">
+      <h2>KYC review queue</h2>
+      <table class="admin-table" id="kycTable">
+        <thead><tr><th>User</th><th>Status</th><th>Note</th><th>Submitted</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section class="tab-panel" id="tab-announcements">
+      <h2>Announcements</h2>
+      <div class="announce-row">
+        <input type="text" id="newAnnouncement" placeholder="e.g. Scheduled maintenance Sunday 2–4am UTC" class="field" style="padding:10px;border-radius:8px;background:var(--bg-2);border:1px solid var(--border);color:var(--text-0);">
+        <button class="btn btn-primary" id="postAnnouncementBtn">Post</button>
+      </div>
+      <table class="admin-table" id="announcementsTable">
+        <thead><tr><th>Message</th><th>Status</th><th>Posted</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+</div>
+
+<script src="/js/vfx-common.js"></script>
+<script>VFX.renderBackButton(document.getElementById("backBtnSlot"));</script>
+<script>
+let ledgerFilter = 'all';
+
+async function gateCheck(){
+  const user = await VFX.currentUser();
+  if(!user){ window.location.href = '/login.html'; return false; }
+  if(user.role !== 'admin'){
+    document.getElementById('gate').innerHTML = `<h2 style="font-size:20px;margin-bottom:10px;">Admins only</h2><p style="color:var(--text-1);">Your account doesn't have admin access.</p>`;
+    return false;
+  }
+  document.getElementById('gate').style.display='none';
+  document.getElementById('shell').style.display='grid';
+  return true;
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+    loadTab(btn.dataset.tab);
+  });
+});
+
+async function loadTab(tab){
+  if(tab==='overview') loadHealth();
+  if(tab==='users') loadUsers();
+  if(tab==='ledger') loadLedger();
+  if(tab==='positions') loadPositions();
+  if(tab==='market') loadMarket();
+  if(tab==='kyc') loadKyc();
+  if(tab==='announcements') loadAnnouncements();
+}
+
+async function loadHealth(){
+  const h = await VFX.api('/api/admin/health');
+  document.getElementById('healthCards').innerHTML = `
+    <div class="card"><div class="num">${h.userCount}</div><div class="lbl">Total users</div></div>
+    <div class="card"><div class="num">${h.openPositions}</div><div class="lbl">Open positions</div></div>
+    <div class="card"><div class="num">${h.pendingWithdrawals}</div><div class="lbl">Pending withdrawals</div></div>
+    <div class="card"><div class="num">${h.connectedClients}</div><div class="lbl">Live WS connections</div></div>
+    <div class="card"><div class="num">${Math.floor(h.uptimeSeconds/60)}m</div><div class="lbl">Server uptime</div></div>
+    <div class="card"><div class="num">${h.symbolsLive}/${h.symbolsTotal}</div><div class="lbl">Symbols on live data</div></div>
+  `;
+}
+
+async function loadUsers(){
+  const { users } = await VFX.api('/api/admin/users');
+  document.querySelector('#usersTable tbody').innerHTML = users.map(u=>`
+    <tr>
+      <td style="font-family:var(--font-mono);">${u.harbor_id}</td>
+      <td>${u.full_name}<br><span style="color:var(--text-2);font-size:11px;">${u.email}</span></td>
+      <td style="font-family:var(--font-mono);">$${(u.demoBalance||0).toFixed(2)}</td>
+      <td style="font-family:var(--font-mono);color:var(--green);">$${(u.realBalance||0).toFixed(2)}</td>
+      <td>${u.email_verified ? '<span class="pill pill-green">Yes</span>' : '<span class="pill pill-gray">No</span>'}</td>
+      <td>${u.totp_enabled ? '<span class="pill pill-green">On</span>' : '<span class="pill pill-gray">Off</span>'}</td>
+      <td><span class="pill pill-${u.kyc_status==='approved'?'green':u.kyc_status==='pending'?'amber':u.kyc_status==='rejected'?'red':'gray'}">${u.kyc_status}</span></td>
+      <td>${u.role}</td>
+      <td>${u.suspended ? '<span class="pill pill-red">Suspended</span>' : '<span class="pill pill-green">Active</span>'}</td>
+      <td>
+        <button class="mini-btn ${u.suspended?'good':'danger'}" data-act="suspend" data-id="${u.id}" data-val="${u.suspended?0:1}">${u.suspended?'Unsuspend':'Suspend'}</button>
+        ${u.role==='user' ? `<button class="mini-btn" data-act="promote" data-id="${u.id}">Make admin</button>` : ''}
+      </td>
+    </tr>`).join('');
+  document.querySelectorAll('#usersTable [data-act="suspend"]').forEach(b=>{
+    b.addEventListener('click', async ()=>{ await VFX.api(`/api/admin/users/${b.dataset.id}/suspend`, { method:'POST', body: JSON.stringify({ suspended: !!parseInt(b.dataset.val) }) }); loadUsers(); });
+  });
+  document.querySelectorAll('#usersTable [data-act="promote"]').forEach(b=>{
+    b.addEventListener('click', async ()=>{ if(confirm('Grant admin access to this user?')){ await VFX.api(`/api/admin/users/${b.dataset.id}/role`, { method:'POST', body: JSON.stringify({ role:'admin' }) }); loadUsers(); } });
+  });
+}
+
+async function loadLedger(){
+  const params = new URLSearchParams();
+  if(ledgerFilter==='deposit') params.set('type','deposit');
+  if(ledgerFilter==='withdrawal') params.set('type','withdrawal');
+  if(ledgerFilter==='pending') params.set('status','pending');
+  const { entries } = await VFX.api('/api/admin/ledger?'+params.toString());
+  document.querySelector('#ledgerTable tbody').innerHTML = entries.map(e=>`
+    <tr>
+      <td>${new Date(e.created_at).toLocaleString()}</td>
+      <td>${e.full_name}<br><span style="color:var(--text-2);font-size:11px;">${e.email}</span></td>
+      <td><span class="pill pill-${e.account_type==='real'?'green':'amber'}">${(e.account_type||'demo').toUpperCase()}</span></td>
+      <td style="text-transform:capitalize;">${e.type.replace('_',' ')}</td>
+      <td style="text-transform:capitalize;">${(e.method||'—').replace('_',' ')}</td>
+      <td style="font-family:var(--font-mono);color:${e.amount>=0?'var(--green)':'var(--red)'};">${e.amount>=0?'+':''}$${Math.abs(e.amount).toFixed(2)}</td>
+      <td><span class="pill pill-${e.status==='completed'?'green':e.status==='pending'?'amber':'red'}">${e.status}</span></td>
+      <td>
+        ${e.type==='withdrawal' && e.status==='pending' ? `<button class="mini-btn good" data-act="approve-wd" data-id="${e.id}">Approve</button><button class="mini-btn danger" data-act="reject-wd" data-id="${e.id}">Reject</button>` : ''}
+        ${e.type==='deposit' && e.status==='pending' ? `<button class="mini-btn good" data-act="approve-dep" data-id="${e.id}">Approve</button><button class="mini-btn danger" data-act="reject-dep" data-id="${e.id}">Reject</button>` : ''}
+      </td>
+    </tr>`).join('') || `<tr><td colspan="8" style="color:var(--text-2);text-align:center;">No entries.</td></tr>`;
+  document.querySelectorAll('#ledgerTable [data-act="approve-wd"]').forEach(b=>{
+    b.addEventListener('click', async ()=>{ await VFX.api(`/api/admin/withdrawals/${b.dataset.id}/approve`, { method:'POST' }); loadLedger(); });
+  });
+  document.querySelectorAll('#ledgerTable [data-act="reject-wd"]').forEach(b=>{
+    b.addEventListener('click', async ()=>{ await VFX.api(`/api/admin/withdrawals/${b.dataset.id}/reject`, { method:'POST' }); loadLedger(); });
+  });
+  document.querySelectorAll('#ledgerTable [data-act="approve-dep"]').forEach(b=>{
+    b.addEventListener('click', async ()=>{ await VFX.api(`/api/admin/deposits/${b.dataset.id}/approve`, { method:'POST' }); loadLedger(); });
+  });
+  document.querySelectorAll('#ledgerTable [data-act="reject-dep"]').forEach(b=>{
+    b.addEventListener('click', async ()=>{ const reason = prompt('Rejection reason:') || 'proof not verified'; await VFX.api(`/api/admin/deposits/${b.dataset.id}/reject`, { method:'POST', body: JSON.stringify({ reason }) }); loadLedger(); });
+  });
+}
+document.querySelectorAll('[data-filter]').forEach(b=>{
+  b.addEventListener('click', ()=>{ ledgerFilter = b.dataset.filter; loadLedger(); });
+});
+
+async function loadPositions(){
+  const { positions } = await VFX.api('/api/admin/positions');
+  document.querySelector('#positionsTable tbody').innerHTML = positions.map(p=>`
+    <tr>
+      <td>${p.harbor_id}<br><span style="color:var(--text-2);font-size:11px;">${p.email}</span></td>
+      <td><span class="pill pill-${p.account_type==='real'?'green':'amber'}">${(p.account_type||'demo').toUpperCase()}</span></td>
+      <td>${p.symbol}</td>
+      <td><span class="pill pill-${p.side==='long'?'green':'red'}">${p.side}</span></td>
+      <td style="font-family:var(--font-mono);">${p.volume_lots}</td>
+      <td style="font-family:var(--font-mono);">${p.entry_price?.toFixed(4)}</td>
+      <td style="font-family:var(--font-mono);">${p.livePrice ? p.livePrice.toFixed(4) : '—'}</td>
+      <td style="font-family:var(--font-mono);color:${p.pnl>=0?'var(--green)':'var(--red)'};">${p.pnl>=0?'+':''}$${Math.abs(p.pnl).toFixed(2)}</td>
+      <td>${new Date(p.opened_at).toLocaleString()}</td>
+    </tr>`).join('') || `<tr><td colspan="9" style="color:var(--text-2);text-align:center;">No open positions.</td></tr>`;
+}
+
+const REGIME_LABELS = { normal: 'Normal', bullish: 'Bullish', bearish: 'Bearish', sideways: 'Sideways', volatile: 'Volatile', paused: 'Paused' };
+async function loadMarket(){
+  const { symbols } = await VFX.api('/api/admin/symbols');
+  document.querySelector('#marketTable tbody').innerHTML = symbols.map(s=>{
+    const hasLive = s.source !== 'simulated';
+    const regimeColor = s.regime==='bullish'?'green':s.regime==='bearish'?'red':s.regime==='paused'?'gray':s.regime==='volatile'?'amber':'gray';
+    let statusHtml;
+    if(s.neverConnected){
+      statusHtml = `<span class="pill pill-red" title="This symbol has never received a real price from any source. Check the server console for [market-data] warnings.">✕ NEVER CONNECTED</span>`;
+    } else {
+      const secsAgo = Math.round((Date.now() - s.lastLiveUpdate) / 1000);
+      const isStale = secsAgo > 180; // no update in 3+ min = flag it
+      const timeLabel = secsAgo < 60 ? `${secsAgo}s ago` : `${Math.round(secsAgo/60)}m ago`;
+      statusHtml = `<span class="pill pill-${isStale?'amber':'green'}" title="Source: ${s.source}">● ${s.source.replace('live-','').toUpperCase()} · ${timeLabel}</span>`;
+    }
+    return `
+    <tr>
+      <td style="font-family:var(--font-mono);font-weight:600;">${s.symbol}</td>
+      <td style="text-transform:uppercase;color:var(--text-2);font-size:11px;">${s.cat}</td>
+      <td>${statusHtml}</td>
+      <td style="font-family:var(--font-mono);">${hasLive ? '$'+s.livePrice.toFixed(4) : '<span style="color:var(--text-2);">no feed</span>'}</td>
+      <td style="font-family:var(--font-mono);font-weight:600;">$${s.price?.toFixed(4)}</td>
+      <td><span class="pill pill-${regimeColor}">${REGIME_LABELS[s.regime]||s.regime}</span></td>
+      <td>
+        <button class="mini-btn good" data-act="regime" data-sym="${s.symbol}" data-regime="bullish">Pump</button>
+        <button class="mini-btn danger" data-act="regime" data-sym="${s.symbol}" data-regime="bearish">Dump</button>
+        <button class="mini-btn" data-act="regime" data-sym="${s.symbol}" data-regime="sideways">Sideways</button>
+        <button class="mini-btn" data-act="regime" data-sym="${s.symbol}" data-regime="volatile">Volatile</button>
+        <button class="mini-btn" data-act="regime" data-sym="${s.symbol}" data-regime="paused">Pause</button>
+        <button class="mini-btn" data-act="regime" data-sym="${s.symbol}" data-regime="normal">Resume</button>
+        <button class="mini-btn" data-act="reset" data-sym="${s.symbol}" style="border-color:var(--accent,#7C6CFB);color:var(--accent,#7C6CFB);margin-left:6px;" title="Snap simulation back to the real reference price and clear pump/dump chart history">↺ Reset to Live</button>
+      </td>
+      <td><div class="toggle ${s.tradingEnabled?'on':''}" data-act="toggle-trading" data-sym="${s.symbol}" data-val="${s.tradingEnabled?0:1}"></div></td>
+      <td><input type="number" class="lev-input" value="${s.leverageOverride||''}" placeholder="default" data-act="leverage" data-sym="${s.symbol}"></td>
+    </tr>`;
+  }).join('');
+  document.querySelectorAll('[data-act="toggle-trading"]').forEach(el=>{
+    el.addEventListener('click', async ()=>{ await VFX.api(`/api/admin/symbols/${el.dataset.sym}/trading`, { method:'POST', body: JSON.stringify({ enabled: !!parseInt(el.dataset.val) }) }); loadMarket(); });
+  });
+  document.querySelectorAll('[data-act="leverage"]').forEach(el=>{
+    el.addEventListener('change', async ()=>{ await VFX.api(`/api/admin/symbols/${el.dataset.sym}/leverage`, { method:'POST', body: JSON.stringify({ leverage: el.value ? parseInt(el.value) : null }) }); });
+  });
+  document.querySelectorAll('[data-act="regime"]').forEach(el=>{
+    el.addEventListener('click', async ()=>{ await VFX.api(`/api/admin/symbols/${el.dataset.sym}/regime`, { method:'POST', body: JSON.stringify({ regime: el.dataset.regime }) }); loadMarket(); });
+  });
+  document.querySelectorAll('[data-act="reset"]').forEach(el=>{
+    el.addEventListener('click', async ()=>{
+      if(!confirm(`Reset ${el.dataset.sym}'s simulation back to the real price and clear its chart history?`)) return;
+      await VFX.api(`/api/admin/symbols/${el.dataset.sym}/reset`, { method:'POST' });
+      loadMarket();
+    });
+  });
+}
+document.getElementById('resetAllBtn').addEventListener('click', async ()=>{
+  if(!confirm('Reset ALL symbols back to their real reference price and clear all chart history? This affects every user.')) return;
+  const { symbols } = await VFX.api('/api/admin/symbols');
+  await Promise.all(symbols.map(s => VFX.api(`/api/admin/symbols/${s.symbol}/reset`, { method:'POST' })));
+  loadMarket();
+});
+
+async function loadKyc(){
+  const { submissions } = await VFX.api('/api/admin/kyc');
+  document.querySelector('#kycTable tbody').innerHTML = submissions.map(s=>`
+    <tr>
+      <td>${s.full_name}<br><span style="color:var(--text-2);font-size:11px;">${s.email} · ${s.harbor_id}</span></td>
+      <td><span class="pill pill-${s.kyc_status==='approved'?'green':s.kyc_status==='pending'?'amber':'red'}">${s.kyc_status}</span></td>
+      <td style="max-width:220px;font-size:11.5px;color:var(--text-1);">${s.kyc_note||'—'}</td>
+      <td>${new Date(s.created_at).toLocaleDateString()}</td>
+      <td>${s.kyc_status==='pending' ? `<button class="mini-btn good" data-act="approve" data-id="${s.id}">Approve</button><button class="mini-btn danger" data-act="reject" data-id="${s.id}">Reject</button>` : ''}</td>
+    </tr>`).join('') || `<tr><td colspan="5" style="color:var(--text-2);text-align:center;">No submissions.</td></tr>`;
+  document.querySelectorAll('#kycTable [data-act="approve"]').forEach(b=>{
+    b.addEventListener('click', async ()=>{ await VFX.api(`/api/admin/kyc/${b.dataset.id}/approve`, { method:'POST' }); loadKyc(); });
+  });
+  document.querySelectorAll('#kycTable [data-act="reject"]').forEach(b=>{
+    b.addEventListener('click', async ()=>{ const reason = prompt('Rejection reason (shown to user):') || 'Documents unclear'; await VFX.api(`/api/admin/kyc/${b.dataset.id}/reject`, { method:'POST', body: JSON.stringify({ reason }) }); loadKyc(); });
+  });
+}
+
+async function loadAnnouncements(){
+  const { announcements } = await VFX.api('/api/admin/announcements');
+  document.querySelector('#announcementsTable tbody').innerHTML = announcements.map(a=>`
+    <tr>
+      <td>${a.message}</td>
+      <td><span class="pill pill-${a.active?'green':'gray'}">${a.active?'Active':'Hidden'}</span></td>
+      <td>${new Date(a.created_at).toLocaleString()}</td>
+      <td><button class="mini-btn" data-act="toggle" data-id="${a.id}">${a.active?'Hide':'Show'}</button></td>
+    </tr>`).join('') || `<tr><td colspan="4" style="color:var(--text-2);text-align:center;">No announcements yet.</td></tr>`;
+  document.querySelectorAll('#announcementsTable [data-act="toggle"]').forEach(b=>{
+    b.addEventListener('click', async ()=>{ await VFX.api(`/api/admin/announcements/${b.dataset.id}/toggle`, { method:'POST' }); loadAnnouncements(); });
+  });
+}
+document.getElementById('postAnnouncementBtn').addEventListener('click', async ()=>{
+  const input = document.getElementById('newAnnouncement');
+  if(!input.value.trim()) return;
+  await VFX.api('/api/admin/announcements', { method:'POST', body: JSON.stringify({ message: input.value.trim() }) });
+  input.value = '';
+  loadAnnouncements();
+});
+
+(async ()=>{
+  const ok = await gateCheck();
+  if(!ok) return;
+  loadHealth();
+  setInterval(()=>{ if(document.getElementById('tab-overview').classList.contains('active')) loadHealth(); }, 10000);
+  setInterval(()=>{ if(document.getElementById('tab-ledger').classList.contains('active')) loadLedger(); }, 1000);
+})();
+</script>
+</body>
+</html>

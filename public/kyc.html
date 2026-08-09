@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Identity verification — VertexFX</title>
+<link rel="icon" href="/assets/logo-mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/marketing.css">
+<style>
+  .upload-slot{border:1.5px dashed var(--border);border-radius:10px;padding:20px;text-align:center;margin-bottom:14px;cursor:pointer;transition:.15s;}
+  .upload-slot:hover{border-color:var(--accent);background:var(--accent-soft);}
+  .upload-slot.filled{border-style:solid;border-color:var(--green);background:var(--green-soft);}
+  .upload-slot .icn{font-size:22px;margin-bottom:6px;}
+  .upload-slot .name{font-size:12px;color:var(--text-1);margin-top:4px;}
+  .status-banner{padding:16px 18px;border-radius:10px;margin-bottom:22px;font-size:13.5px;}
+  .status-banner.not_started{background:var(--bg-2);border:1px solid var(--border);color:var(--text-1);}
+  .status-banner.pending{background:rgba(240,185,11,0.1);border:1px solid rgba(240,185,11,0.3);color:#f3c94a;}
+  .status-banner.approved{background:rgba(14,203,129,0.1);border:1px solid rgba(14,203,129,0.3);color:#5eeab3;}
+  .status-banner.rejected{background:rgba(246,70,93,0.1);border:1px solid rgba(246,70,93,0.3);color:#ff8fa0;}
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <div class="container">
+    <div id="backBtnSlot" style="margin-right:4px;"></div>
+    <a href="/"><img src="/assets/logo-full.svg" class="brand-logo" alt="VertexFX" style="height:22px;"></a>
+    <div class="nav-links">
+      <a href="/dashboard.html">Terminal</a>
+      <a href="/wallet.html">Wallet</a>
+      <a href="/security.html">Security</a>
+    </div>
+    <div class="nav-cta" data-vfx-account></div>
+  </div>
+</nav>
+
+<section class="section" style="padding-top:40px;">
+  <div class="container" style="max-width:560px;">
+    <h1 style="font-size:26px;margin-bottom:6px;">Identity verification</h1>
+    <p style="color:var(--text-1);font-size:13.5px;margin-bottom:24px;">This is a demo flow. Files are never actually uploaded, stored, or sent to a verification provider — this exists only to demonstrate the UI/status flow a real KYC integration (e.g. Sumsub, Persona, Onfido) would use.</p>
+
+    <div id="statusBanner" class="status-banner not_started">Loading status…</div>
+
+    <div class="card" id="formCard">
+      <h3>Submit documents (mock)</h3>
+      <div class="field">
+        <label for="idType">Document type</label>
+        <select id="idType">
+          <option value="passport">Passport</option>
+          <option value="drivers_license">Driver's license</option>
+          <option value="national_id">National ID card</option>
+        </select>
+      </div>
+
+      <label class="upload-slot" id="idSlot">
+        <div class="icn">🪪</div>
+        <div>Upload ID document (front)</div>
+        <div class="name" id="idName">No file selected</div>
+        <input type="file" id="idFile" accept="image/*,.pdf" style="display:none;">
+      </label>
+
+      <label class="upload-slot" id="selfieSlot">
+        <div class="icn">🤳</div>
+        <div>Upload a selfie</div>
+        <div class="name" id="selfieName">No file selected</div>
+        <input type="file" id="selfieFile" accept="image/*" style="display:none;">
+      </label>
+
+      <label class="upload-slot" id="addressSlot">
+        <div class="icn">📄</div>
+        <div>Proof of address (optional)</div>
+        <div class="name" id="addressName">No file selected</div>
+        <input type="file" id="addressFile" accept="image/*,.pdf" style="display:none;">
+      </label>
+
+      <div class="form-error" id="formError"></div>
+      <div class="form-success" id="formSuccess"></div>
+
+      <button class="btn btn-primary btn-block" id="submitBtn">Submit for review</button>
+    </div>
+  </div>
+</section>
+
+<script src="/js/vfx-common.js"></script>
+<script>VFX.renderBackButton(document.getElementById("backBtnSlot"));</script>
+<script>
+function wireUpload(slotId, inputId, nameId){
+  const slot = document.getElementById(slotId);
+  const input = document.getElementById(inputId);
+  const nameEl = document.getElementById(nameId);
+  slot.addEventListener('click', ()=>input.click());
+  input.addEventListener('change', ()=>{
+    if(input.files[0]){
+      nameEl.textContent = input.files[0].name;
+      slot.classList.add('filled');
+    }
+  });
+}
+wireUpload('idSlot','idFile','idName');
+wireUpload('selfieSlot','selfieFile','selfieName');
+wireUpload('addressSlot','addressFile','addressName');
+
+async function loadStatus(){
+  const { status } = await VFX.api('/api/kyc/status');
+  const banner = document.getElementById('statusBanner');
+  banner.className = 'status-banner ' + status;
+  const labelMap = {
+    not_started: "You haven't submitted verification yet.",
+    pending: 'Your documents are under review. This usually takes a few minutes in this demo.',
+    approved: 'Your identity is verified.',
+    rejected: 'Your submission was rejected — see note below and resubmit.',
+  };
+  banner.textContent = labelMap[status] || status;
+  document.getElementById('formCard').style.display = (status === 'approved' || status === 'pending') ? 'none' : 'block';
+}
+
+document.getElementById('submitBtn').addEventListener('click', async ()=>{
+  const errBox = document.getElementById('formError');
+  const okBox = document.getElementById('formSuccess');
+  errBox.style.display='none'; okBox.style.display='none';
+  const idFile = document.getElementById('idFile').files[0];
+  const selfieFile = document.getElementById('selfieFile').files[0];
+  const addressFile = document.getElementById('addressFile').files[0];
+  if(!idFile || !selfieFile){
+    errBox.textContent = 'ID document and selfie are required.';
+    errBox.style.display='block';
+    return;
+  }
+  try{
+    await VFX.api('/api/kyc/submit', { method:'POST', body: JSON.stringify({
+      idType: document.getElementById('idType').value,
+      idFilename: idFile.name,
+      selfieFilename: selfieFile.name,
+      addressFilename: addressFile ? addressFile.name : null,
+    })});
+    okBox.textContent = 'Submitted — status is now pending review.';
+    okBox.style.display = 'block';
+    await loadStatus();
+  }catch(err){
+    errBox.textContent = err.message;
+    errBox.style.display='block';
+  }
+});
+
+(async ()=>{
+  const user = await VFX.requireAuthOrRedirect();
+  if(!user) return;
+  await loadStatus();
+})();
+</script>
+</body>
+</html>

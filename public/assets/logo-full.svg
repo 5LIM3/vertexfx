@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 200" fill="none">
+  <defs>
+    <linearGradient id="vfxGradFull" x1="0" y1="0" x2="620" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#A855F7"/>
+      <stop offset="0.55" stop-color="#7C3AED"/>
+      <stop offset="1" stop-color="#4C1D95"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(0,0) scale(0.62)">
+    <path d="M28 40 L100 130 L128 96 L146 118 L100 175 L10 62 Z" fill="url(#vfxGradFull)"/>
+    <path d="M146 118 L188 40 L150 40 L118 100 Z" fill="url(#vfxGradFull)"/>
+    <path d="M100 175 L165 62 L190 62 L128 175 Z" fill="url(#vfxGradFull)"/>
+    <path d="M150 96 L190 165 L155 165 L118 96 Z" fill="#FFFFFF"/>
+  </g>
+  <text x="145" y="130" font-family="'Space Grotesk','Inter',sans-serif" font-weight="700" font-size="64" fill="#EAEDF4">Vertex<tspan fill="#8B5CF6">FX</tspan></text>
+</svg>

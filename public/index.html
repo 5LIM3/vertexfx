@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VertexFX — Simulated Trading Platform (Demo)</title>
+<link rel="icon" href="/assets/logo-mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/marketing.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="/"><img src="/assets/logo-full.svg" class="brand-logo" alt="VertexFX" style="height:22px;"></a>
+    <div class="nav-links">
+      <a href="/index.html" class="active">Home</a>
+      <a href="/instruments.html">Instruments</a>
+      <a href="/about.html">About</a>
+    </div>
+    <div class="nav-cta" data-vfx-account></div>
+  </div>
+</nav>
+
+<div id="announcementBanner" style="display:none;background:var(--accent-soft);border-bottom:1px solid var(--border);padding:10px 20px;text-align:center;font-size:13px;color:var(--text-0);"></div>
+
+<header class="hero">
+  <div class="container">
+    <div class="hero-badge"><span class="dot"></span> Simulated markets — 24 instruments, live-feeling price feed</div>
+    <h1>Practice trading on a <span>fully simulated</span> market engine</h1>
+    <p>VertexFX is a demo broker platform. Every price, candle, and order book is generated server-side — there is no real market data and no real money involved.</p>
+    <div class="hero-actions">
+      <a href="/signup.html" class="btn btn-primary btn-lg">Create demo account</a>
+      <a href="/instruments.html" class="btn btn-ghost btn-lg">View instruments</a>
+    </div>
+    <p class="hero-disclaimer">VertexFX is a fictional portfolio project. It is not a licensed broker, does not hold client funds, and does not execute real trades in any real market.</p>
+  </div>
+</header>
+
+<section class="stats-bar">
+  <div class="stat-cell"><div class="num">15</div><div class="lbl">Simulated instruments</div></div>
+  <div class="stat-cell"><div class="num">$10,000</div><div class="lbl">Starting demo balance</div></div>
+  <div class="stat-cell"><div class="num">1s</div><div class="lbl">Server tick interval</div></div>
+  <div class="stat-cell"><div class="num">0</div><div class="lbl">Real funds ever moved</div></div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Platform</div>
+      <h2>Everything a real terminal has — none of the real money</h2>
+      <p>Built to demonstrate a full-stack trading platform: account system, live-feeling charts, an order engine, and a deposit/withdrawal flow — all backed by a real Node.js/Express server.</p>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="icon">◆</div>
+        <h3>Live simulated charts</h3>
+        <p>Server-driven random-walk price engine feeds candles across six timeframes, streamed over WebSocket.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">⇄</div>
+        <h3>Real order execution logic</h3>
+        <p>Buy/sell orders fill server-side at the engine's current price — margin, P&L, and position tracking all run in the backend.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🔒</div>
+        <h3>Real accounts, mock funds</h3>
+        <p>Signup, login and sessions are real (bcrypt + JWT). Deposits and withdrawals write to a mock ledger — never a real payment processor.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">📊</div>
+        <h3>Depth &amp; order flow</h3>
+        <p>Synthetic order book depth and a live trade tape recompute every tick so the terminal always feels alive.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🧭</div>
+        <h3>Four asset classes</h3>
+        <p>Forex majors, metals, crypto and indices — each with its own volatility profile and contract size.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🗂</div>
+        <h3>Position &amp; order history</h3>
+        <p>Every open position, close, deposit and withdrawal is persisted to a SQLite ledger you can audit.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0;">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Transparency</div>
+      <h2>Clearly labeled, always</h2>
+    </div>
+    <div class="trust-row">
+      <div class="trust-badge"><b>Demo platform</b> — not a registered broker-dealer</div>
+      <div class="trust-badge"><b>Simulated data</b> — not sourced from any real exchange</div>
+      <div class="trust-badge"><b>No real funds</b> — deposits/withdrawals are mock ledger entries</div>
+      <div class="trust-badge"><b>Open source build</b> — a full-stack portfolio project</div>
+    </div>
+    <div class="fiction-banner"><b>Fictional company notice:</b> VertexFX does not exist as a real financial institution. This site was built purely to demonstrate full-stack engineering — authentication, a simulated matching/pricing engine, and transactional flows. Do not send real funds to any address claiming to be VertexFX.</div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <img src="/assets/logo-full.svg" style="height:20px;margin-bottom:14px;" alt="VertexFX">
+        <p style="color:var(--text-1);font-size:13px;max-width:260px;">A simulated trading platform built as a full-stack portfolio project. No real markets, no real money.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <a href="/instruments.html">Instruments</a>
+        <a href="/dashboard.html">Trading terminal</a>
+        <a href="/wallet.html">Wallet</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="/about.html">About</a>
+        <a href="/about.html#regulation">Regulation notice</a>
+      </div>
+      <div class="footer-col">
+        <h4>Account</h4>
+        <a href="/signup.html">Create account</a>
+        <a href="/login.html">Log in</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 VertexFX (fictional demo project). Built by 5LIM3STACKDEVS.</span>
+      <span>Not a real financial services company.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="/js/vfx-common.js"></script>
+<script>
+(async ()=>{
+  try{
+    const { announcements } = await VFX.api('/api/announcements/active');
+    if(announcements && announcements.length){
+      const banner = document.getElementById('announcementBanner');
+      banner.textContent = '📢 ' + announcements[0].message;
+      banner.style.display = 'block';
+    }
+  }catch(e){}
+})();
+</script>
+</body>
+</html>
