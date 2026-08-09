@@ -26,13 +26,15 @@
   <div class="container">
     <div id="backBtnSlot" style="margin-right:4px;"></div>
     <a href="/"><img src="/assets/logo-full.svg" class="brand-logo" alt="VertexFX" style="height:22px;"></a>
-    <div class="nav-links">
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+    <div class="nav-mobile-panel" id="navMobilePanel">
+      <div class="nav-links">
       <a href="/dashboard.html">Terminal</a>
       <a href="/wallet.html">Wallet</a>
       <a href="/security.html">Security</a>
     </div>
-    <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
-    <div class="nav-cta" data-vfx-account></div>
+      <div class="nav-cta" data-vfx-account></div>
+    </div>
   </div>
 </nav>
 

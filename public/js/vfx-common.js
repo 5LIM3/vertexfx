@@ -82,21 +82,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // Mobile hamburger nav toggle — works on any page with a .nav-toggle button.
-// Runs independently of login state so it fires even on pages without [data-vfx-account].
+// Toggles #navMobilePanel, which wraps BOTH nav-links and nav-cta (the account
+// buttons injected above) so everything collapses together instead of nav-cta
+// being left to overflow horizontally on its own.
 document.addEventListener('DOMContentLoaded', () => {
   const toggle = document.getElementById('navToggle');
-  const links = document.querySelector('.nav-links');
-  if (!toggle || !links) return;
+  const panel = document.getElementById('navMobilePanel');
+  if (!toggle || !panel) return;
   toggle.addEventListener('click', () => {
-    links.classList.toggle('mobile-open');
+    panel.classList.toggle('mobile-open');
   });
-  // Close the menu after tapping a link, so it doesn't stay open on navigation
-  links.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', () => links.classList.remove('mobile-open'));
+  // Close the menu after tapping any link/button inside it (delegated, since
+  // nav-cta's content is injected dynamically after this listener is attached)
+  panel.addEventListener('click', (e) => {
+    if (e.target.closest('a, button')) panel.classList.remove('mobile-open');
   });
-  // Close if the viewport is resized back to desktop width
   window.addEventListener('resize', () => {
-    if (window.innerWidth > 900) links.classList.remove('mobile-open');
+    if (window.innerWidth > 900) panel.classList.remove('mobile-open');
   });
 });
 

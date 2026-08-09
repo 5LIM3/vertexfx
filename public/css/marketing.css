@@ -124,8 +124,8 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.01em;}
 
 /* Mobile nav toggle (hidden on desktop) */
 .nav-toggle{display:none;background:none;border:none;color:var(--text-0);font-size:22px;cursor:pointer;padding:6px 8px;margin-left:auto;}
-.nav-links.mobile-open{display:flex !important;position:absolute;top:72px;left:0;right:0;flex-direction:column;background:var(--bg-1);border-bottom:1px solid var(--border);padding:10px 16px;gap:2px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,0.4);}
-.nav-links.mobile-open a{padding:12px 10px;}
+/* Desktop: behaves like the old flat layout — nav-links and nav-cta side by side */
+.nav-mobile-panel{display:flex;align-items:center;flex:1;gap:16px;}
 
 @media(max-width:900px){
   .hero h1{font-size:32px;}
@@ -133,8 +133,6 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.01em;}
   .feature-grid,.stats-bar{grid-template-columns:1fr;}
   .footer-grid{grid-template-columns:1fr 1fr;gap:24px;}
   .wallet-grid{grid-template-columns:1fr;}
-  .nav-links{display:none;}
-  .nav-toggle{display:block;}
   .container{padding:0 16px;}
   .section{padding:56px 0;}
   .section-head h2{font-size:26px;}
@@ -143,6 +141,26 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.01em;}
   .trust-row{gap:10px;}
   .hero-actions{flex-direction:column;gap:10px;}
   .hero-actions .btn{width:100%;}
+
+  .nav-toggle{display:block;}
+  /* Both nav-links AND nav-cta (Dashboard/Wallet/.../Logout when signed in) live inside
+     this one panel now, so the hamburger reliably controls everything — previously nav-cta
+     was untouched and just overflowed horizontally off-screen when signed in. */
+  .nav-mobile-panel{display:none;}
+  .nav-mobile-panel.mobile-open{
+    display:flex !important;flex-direction:column;align-items:stretch;gap:4px;
+    position:absolute;top:72px;left:0;right:0;background:var(--bg-1);
+    border-bottom:1px solid var(--border);padding:10px 16px;z-index:200;
+    box-shadow:0 8px 24px rgba(0,0,0,0.4);max-height:calc(100vh - 72px);overflow-y:auto;
+  }
+  .nav-mobile-panel.mobile-open .nav-links,
+  .nav-mobile-panel.mobile-open .nav-cta{
+    display:flex;flex-direction:column;gap:2px;width:100%;flex:none;
+  }
+  .nav-mobile-panel.mobile-open a,
+  .nav-mobile-panel.mobile-open button{
+    width:100%;text-align:left;justify-content:flex-start;padding:12px 10px;
+  }
 }
 
 @media(max-width:600px){
@@ -153,7 +171,7 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.01em;}
   .footer-bottom{flex-direction:column;align-items:flex-start;gap:8px;}
   .auth-card{padding:24px 20px;}
   .site-nav{height:64px;}
-  .nav-links.mobile-open{top:64px;}
+  .nav-mobile-panel.mobile-open{top:64px;}
   .brand-logo{height:18px !important;}
   .card{padding:18px;}
   .balance-display{font-size:28px;}
