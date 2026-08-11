@@ -155,12 +155,18 @@
   .navlinks.mobile-open{display:flex !important;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:var(--bg-1);border-bottom:1px solid var(--border);padding:8px 16px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,0.5);}
   .navlinks.mobile-open a{padding:12px 8px;}
 
+  .mobile-only-link{display:none;}
+  @media (max-width:1200px){
+    .mobile-only-link{display:block !important;}
+    #logoutBtn{display:none;} /* now lives in the hamburger menu instead, topbar-right was too cramped */
+  }
   @media (max-width:640px){
     .topbar{flex-wrap:wrap;height:auto;padding:8px 12px;gap:8px;}
     .brand img{height:18px;}
     .topbar-right{gap:6px;flex-wrap:wrap;}
     .acct{padding:5px 8px;}
     .acct .bal{font-size:11.5px;}
+    .acct .label{font-size:9.5px;}
     .deposit-btn{padding:7px 11px;font-size:12px;}
     .ticker-strip{padding:0 12px;height:32px;font-size:11px;}
     .live-tag{font-size:11px;}
@@ -176,11 +182,13 @@
     .op-tabs button{font-size:12px;}
   }
   /* Tables with many columns need horizontal scroll on narrow screens rather than squeezing/breaking */
-  .bottom-tabs > div{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .bottom-tabs > div{overflow-x:auto;-webkit-overflow-scrolling:touch;}  .env-banner{background:var(--bg-1);border-bottom:1px solid var(--border);color:var(--text-2);font-size:11px;text-align:center;padding:6px 16px;letter-spacing:0.2px;}
+  .env-banner b{color:var(--text-1);font-weight:700;letter-spacing:0.4px;margin-right:7px;}
 </style>
 </head>
 <body>
 
+<div class="env-banner"><b>DEMO ENVIRONMENT</b>This environment is provided for demonstration purposes.</div>
 <header class="topbar">
   <div id="backBtnSlot" style="margin-right:2px;"></div>
   <a href="/" class="brand"><img src="/assets/logo-full.svg" alt="VertexFX"></a>
@@ -192,6 +200,7 @@
     <a href="/instruments.html">Instruments</a>
     <a href="/security.html">Security</a>
     <a href="/admin.html" id="adminNavLink" style="display:none;">Admin</a>
+    <a href="#" id="mobileLogoutLink" class="mobile-only-link">⏻ Log out</a>
   </nav>
   <div class="topbar-right">
     <div id="accountSwitcher"></div>
@@ -379,6 +388,7 @@ function updateEquityDisplay(){
   document.getElementById('topBalance').textContent = VFX.fmtMoney(wallet.balance);
 }
 document.getElementById('logoutBtn').addEventListener('click', ()=>VFX.logout());
+document.getElementById('mobileLogoutLink').addEventListener('click', (e)=>{ e.preventDefault(); VFX.logout(); });
 
 /* ================= WATCHLIST / TICKER ================= */
 function renderWatchlist(){

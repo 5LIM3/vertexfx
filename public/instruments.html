@@ -10,17 +10,22 @@
 <link rel="stylesheet" href="/css/marketing.css">
 </head>
 <body>
+<div class="env-banner"><b>DEMO ENVIRONMENT</b>This environment is provided for demonstration purposes.</div>
+
 <nav class="site-nav">
   <div class="container">
     <div id="backBtnSlot" style="margin-right:4px;"></div>
     <a href="/"><img src="/assets/logo-full.svg" class="brand-logo" alt="VertexFX" style="height:22px;"></a>
     <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
     <div class="nav-mobile-panel" id="navMobilePanel">
-      <div class="nav-links">
-      <a href="/index.html">Home</a>
-      <a href="/instruments.html" class="active">Instruments</a>
-      <a href="/about.html">About</a>
-    </div>
+            <div class="nav-links">
+        <a href="/index.html">Home</a>
+        <a href="/platforms.html">Platforms</a>
+        <a href="/instruments.html" class="active">Markets</a>
+        <a href="/education.html">Education</a>
+        <a href="/about.html">About</a>
+        <a href="/support.html">Support</a>
+      </div>
       <div class="nav-cta" data-vfx-account></div>
     </div>
   </div>
@@ -28,8 +33,8 @@
 
 <header class="hero" style="padding:56px 0 34px;">
   <div class="container">
-    <h1 style="font-size:34px;">Simulated instruments</h1>
-    <p>Where a live feed is available (crypto, forex), we show the real market price next to VertexFX's own simulation price — trades always execute against the simulation, never the real price. Spreads and leverage are demo values.</p>
+    <h1 style="font-size:34px;">Markets</h1>
+    <p>Live reference pricing from global markets, shown alongside VertexFX's trading price for each instrument.</p>
   </div>
 </header>
 
@@ -37,21 +42,46 @@
   <div class="container">
     <table class="instr-table" id="instrTable">
       <thead>
-        <tr><th>Symbol</th><th>Class</th><th>Real market</th><th>Simulation price</th><th>Sim change</th><th>Typical spread</th><th>Max leverage</th></tr>
+        <tr><th>Symbol</th><th>Class</th><th>Reference Price</th><th>Trading Price</th><th>Change</th><th>Typical Spread</th><th>Max Leverage</th></tr>
       </thead>
       <tbody id="instrBody">
         <tr><td colspan="7" style="color:var(--text-2);">Loading prices…</td></tr>
       </tbody>
     </table>
-    <p style="margin-top:18px;color:var(--text-2);font-size:12.5px;">All figures update from the server's live simulation and refresh every few seconds.</p>
+    <p style="margin-top:18px;color:var(--text-2);font-size:12.5px;">Prices update automatically and refresh every few seconds.</p>
   </div>
 </section>
 
 <footer class="site-footer">
   <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <img src="/assets/logo-full.svg" style="height:20px;margin-bottom:14px;" alt="VertexFX">
+        <p style="color:var(--text-1);font-size:13px;max-width:260px;">Modern technology for a smarter trading experience.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="/about.html">About</a>
+        <a href="/platforms.html">Platforms</a>
+        <a href="/education.html">Education</a>
+        <a href="/support.html">Support</a>
+      </div>
+      <div class="footer-col">
+        <h4>Trading</h4>
+        <a href="/instruments.html">Markets</a>
+        <a href="/dashboard.html">Trading Platform</a>
+        <a href="/instruments.html">Market Watch</a>
+        <a href="/platforms.html">Trading Tools</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="/legal/terms.html">Terms</a>
+        <a href="/legal/privacy.html">Privacy</a>
+        <a href="/legal/cookies.html">Cookies</a>
+      </div>
+    </div>
     <div class="footer-bottom">
-      <span>© 2026 VertexFX (fictional demo project). Built by 5LIM3STACKDEVS.</span>
-      <span>Not a real financial services company.</span>
+      <span>© 2026 VertexFX. All rights reserved.</span>
     </div>
   </div>
 </footer>
@@ -74,7 +104,7 @@ async function loadInstruments(){
       return `<tr>
         <td class="sym">${m.sym}</td>
         <td><span class="cat-pill">${m.cat}</span></td>
-        <td class="num" style="font-family:var(--font-mono);">${hasLive ? s.livePrice.toFixed(m.digits) : '<span style="color:var(--text-2);">— no live feed —</span>'}</td>
+        <td class="num" style="font-family:var(--font-mono);">${hasLive ? s.livePrice.toFixed(m.digits) : '<span style="color:var(--text-2);">—</span>'}</td>
         <td class="num" style="font-family:var(--font-mono);font-weight:600;">${s.price.toFixed(m.digits)}</td>
         <td class="num" style="font-family:var(--font-mono);color:${chg>=0?'var(--green)':'var(--red)'};">${chg>=0?'+':''}${chg.toFixed(2)}%</td>
         <td>${CAT_SPREAD[m.sym]||'—'}</td>

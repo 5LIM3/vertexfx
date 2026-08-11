@@ -1,3 +1,7 @@
+/* Environment banner — one slim, discreet notice at the very top of every page */
+.env-banner{background:var(--bg-1);border-bottom:1px solid var(--border);color:var(--text-2);font-size:11.5px;text-align:center;padding:7px 16px;letter-spacing:0.2px;}
+.env-banner b{color:var(--text-1);font-weight:700;letter-spacing:0.4px;margin-right:7px;}
+
 :root{
   --bg-0:#0A0D13; --bg-1:#10141D; --bg-2:#161B27; --bg-3:#1C2230;
   --border:#252C3D; --border-soft:#1D2330;

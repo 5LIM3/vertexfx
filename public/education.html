@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Education — VertexFX</title>
+<link rel="icon" href="/assets/logo-mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/marketing.css">
+<style>
+  .cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:44px;}
+  .cat-card{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:20px 18px;text-align:center;cursor:default;transition:.15s;}
+  .cat-card:hover{border-color:var(--accent);}
+  .cat-card .icon{font-size:22px;margin-bottom:8px;}
+  .cat-card .name{font-size:13px;font-weight:600;}
+  .article-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+  .article-card{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:22px;}
+  .article-card .tag{font-size:10.5px;font-weight:700;color:var(--accent-2);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:10px;display:block;}
+  .article-card h3{font-size:16px;margin-bottom:8px;}
+  .article-card p{color:var(--text-1);font-size:13px;}
+  @media(max-width:900px){.cat-grid{grid-template-columns:repeat(2,1fr);}.article-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="env-banner"><b>DEMO ENVIRONMENT</b>This environment is provided for demonstration purposes.</div>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="/"><img src="/assets/logo-full.svg" class="brand-logo" alt="VertexFX" style="height:22px;"></a>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+    <div class="nav-mobile-panel" id="navMobilePanel">
+      <div class="nav-links">
+        <a href="/index.html">Home</a>
+        <a href="/platforms.html">Platforms</a>
+        <a href="/instruments.html">Markets</a>
+        <a href="/education.html" class="active">Education</a>
+        <a href="/about.html">About</a>
+        <a href="/support.html">Support</a>
+      </div>
+      <div class="nav-cta" data-vfx-account></div>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" style="padding:64px 0 40px;">
+  <div class="container">
+    <h1 style="font-size:38px;">Education Center</h1>
+    <p>Build your market knowledge — from the fundamentals to advanced analysis techniques.</p>
+  </div>
+</header>
+
+<section class="section" style="padding-top:10px;">
+  <div class="container">
+    <div class="cat-grid">
+      <div class="cat-card"><div class="icon">📘</div><div class="name">Market Basics</div></div>
+      <div class="cat-card"><div class="icon">💱</div><div class="name">Forex</div></div>
+      <div class="cat-card"><div class="icon">📈</div><div class="name">Technical Analysis</div></div>
+      <div class="cat-card"><div class="icon">📰</div><div class="name">Fundamental Analysis</div></div>
+      <div class="cat-card"><div class="icon">🛡️</div><div class="name">Risk Management</div></div>
+      <div class="cat-card"><div class="icon">🧠</div><div class="name">Trading Psychology</div></div>
+      <div class="cat-card"><div class="icon">♟️</div><div class="name">Trading Strategies</div></div>
+      <div class="cat-card"><div class="icon">🎓</div><div class="name">Getting Started</div></div>
+    </div>
+
+    <div class="section-head" style="margin-bottom:28px;">
+      <div class="eyebrow">Featured articles</div>
+      <h2>Start Learning</h2>
+    </div>
+    <div class="article-grid">
+      <div class="article-card">
+        <span class="tag">Forex</span>
+        <h3>Understanding Currency Pairs</h3>
+        <p>How base and quote currencies work, and what a price like EUR/USD actually represents.</p>
+      </div>
+      <div class="article-card">
+        <span class="tag">Market Basics</span>
+        <h3>What Is Spread?</h3>
+        <p>The difference between the bid and ask price, and why it matters for every trade you place.</p>
+      </div>
+      <div class="article-card">
+        <span class="tag">Technical Analysis</span>
+        <h3>Reading Candlestick Charts</h3>
+        <p>How to interpret open, high, low, and close on a candlestick — and what patterns can tell you.</p>
+      </div>
+      <div class="article-card">
+        <span class="tag">Technical Analysis</span>
+        <h3>Understanding Market Trends</h3>
+        <p>Identifying uptrends, downtrends, and consolidation — the foundation of technical analysis.</p>
+      </div>
+      <div class="article-card">
+        <span class="tag">Risk Management</span>
+        <h3>Introduction to Risk Management</h3>
+        <p>Position sizing, stop-loss placement, and why protecting capital comes before chasing gains.</p>
+      </div>
+      <div class="article-card">
+        <span class="tag">Trading Psychology</span>
+        <h3>Managing Emotion in Trading</h3>
+        <p>Why discipline and a consistent process matter more than any single trade.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <img src="/assets/logo-full.svg" style="height:20px;margin-bottom:14px;" alt="VertexFX">
+        <p style="color:var(--text-1);font-size:13px;max-width:260px;">Modern technology for a smarter trading experience.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="/about.html">About</a>
+        <a href="/platforms.html">Platforms</a>
+        <a href="/education.html">Education</a>
+        <a href="/support.html">Support</a>
+      </div>
+      <div class="footer-col">
+        <h4>Trading</h4>
+        <a href="/instruments.html">Markets</a>
+        <a href="/dashboard.html">Trading Platform</a>
+        <a href="/instruments.html">Market Watch</a>
+        <a href="/platforms.html">Trading Tools</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="/legal/terms.html">Terms</a>
+        <a href="/legal/privacy.html">Privacy</a>
+        <a href="/legal/cookies.html">Cookies</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 VertexFX. All rights reserved.</span>
+    </div>
+  </div>
+</footer>
+<script src="/js/vfx-common.js"></script>
+</body>
+</html>
