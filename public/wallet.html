@@ -44,70 +44,71 @@
         <div class="balance-display" id="balanceVal">$0.00</div>
         <div class="balance-sub" id="balanceSub">Free margin: —</div>
 
-        <div class="tab-row">
-          <button class="tab-btn active" data-tab="deposit">Deposit</button>
-          <button class="tab-btn" data-tab="withdraw">Withdraw</button>
+        <div id="demoFundingNote" style="display:none;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:16px;font-size:13px;color:var(--text-1);">
+          Your demo account is pre-funded and doesn't require deposits or withdrawals. Switch to your Real account to manage funding.
         </div>
 
-        <div class="form-error" id="walletError"></div>
-        <div class="form-success" id="walletSuccess"></div>
-
-        <form id="walletForm">
-          <div id="methodLabel" style="font-size:10.5px;color:var(--text-1);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:8px;">Deposit method</div>
-          <div class="method-row" id="methodRow">
-            <div class="method-chip active" data-method="card">💳 Card</div>
-            <div class="method-chip" data-method="bank_transfer">🏦 Bank transfer</div>
-            <div class="method-chip" data-method="crypto">◆ Crypto</div>
+        <div id="fundingSection">
+          <div class="tab-row">
+            <button class="tab-btn active" data-tab="deposit">Deposit</button>
+            <button class="tab-btn" data-tab="withdraw">Withdraw</button>
           </div>
 
-          <div id="methodDetails-card" class="method-details">
-            <div class="field"><label>Card number</label><input type="text" id="cardNumber" placeholder="4242 4242 4242 4242" maxlength="19"></div>
-            <div style="display:flex;gap:10px;">
-              <div class="field" style="flex:1;"><label>Expiry</label><input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5"></div>
-              <div class="field" style="flex:1;"><label>CVV</label><input type="text" id="cardCvv" placeholder="123" maxlength="4"></div>
+          <div class="form-error" id="walletError"></div>
+          <div class="form-success" id="walletSuccess"></div>
+
+          <form id="walletForm">
+            <div id="methodLabel" style="font-size:10.5px;color:var(--text-1);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:8px;">Deposit method</div>
+            <div class="method-row" id="methodRow">
+              <div class="method-chip active" data-method="card" style="cursor:pointer;">Card</div>
+              <div class="method-chip" data-method="bank_transfer" style="cursor:pointer;">Bank transfer</div>
+              <div class="method-chip" data-method="crypto" style="cursor:pointer;">Crypto</div>
             </div>
-            <p style="font-size:11px;color:var(--text-2);margin-bottom:0;">Test card that passes validation: 4242 4242 4242 4242, any future expiry, any 3-digit CVV.</p>
-          </div>
 
-          <div id="methodDetails-bank_transfer" class="method-details" style="display:none;">
-            <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:12.5px;color:var(--text-1);margin-bottom:14px;">
-              <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Beneficiary</span><b style="color:var(--text-0);">VertexFX Demo Escrow</b></div>
-              <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Account number</span><b class="num" style="color:var(--text-0);">0001 2345 6789</b></div>
-              <div style="display:flex;justify-content:space-between;"><span>Reference</span><b class="num" style="color:var(--text-0);" id="bankRef">—</b></div>
+            <div id="methodDetails-card" class="method-details">
+              <div class="field"><label>Card number</label><input type="text" id="cardNumber" placeholder="4242 4242 4242 4242" maxlength="19"></div>
+              <div style="display:flex;gap:10px;">
+                <div class="field" style="flex:1;"><label>Expiry</label><input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5"></div>
+                <div class="field" style="flex:1;"><label>CVV</label><input type="text" id="cardCvv" placeholder="123" maxlength="4"></div>
+              </div>
+              <p style="font-size:11px;color:var(--text-2);margin-bottom:0;">Test card that passes validation: 4242 4242 4242 4242, any future expiry, any 3-digit CVV.</p>
             </div>
-            <p style="font-size:11px;color:var(--text-2);margin-bottom:14px;">Demo only — this account does not exist. Submitting below simulates the transfer instantly.</p>
-          </div>
 
-          <div id="methodDetails-crypto" class="method-details" style="display:none;">
+            <div id="methodDetails-bank_transfer" class="method-details" style="display:none;">
+              <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:12.5px;color:var(--text-1);margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Beneficiary</span><b style="color:var(--text-0);">VertexFX Demo Escrow</b></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Account number</span><b class="num" style="color:var(--text-0);">0001 2345 6789</b></div>
+                <div style="display:flex;justify-content:space-between;"><span>Reference</span><b class="num" style="color:var(--text-0);" id="bankRef">—</b></div>
+              </div>
+              <p style="font-size:11px;color:var(--text-2);margin-bottom:14px;">Demo only — this account does not exist. Submitting below simulates the transfer instantly.</p>
+            </div>
+
+            <div id="methodDetails-crypto" class="method-details" style="display:none;">
+              <div class="field">
+                <label>Network</label>
+                <select id="cryptoNetwork">
+                  <option value="USDT-TRC20">USDT (TRC-20)</option>
+                  <option value="USDT-ERC20">USDT (ERC-20)</option>
+                  <option value="BTC">Bitcoin</option>
+                  <option value="ETH">Ethereum</option>
+                </select>
+              </div>
+              <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:11.5px;color:var(--text-1);margin-bottom:14px;word-break:break-all;">
+                <div style="margin-bottom:4px;color:var(--text-2);">Demo deposit address</div>
+                <b class="num" style="color:var(--text-0);">TDemoVfxAddr8f3k29xNqPz61yLmWv7Rt4Hc</b>
+              </div>
+              <p style="font-size:11.5px;color:var(--text-2);margin-bottom:14px;">This is a demo address — no real crypto is required or processed. Confirming below submits this deposit for review.</p>
+              <button type="button" id="cryptoConfirmBtn" class="btn btn-ghost btn-block" style="margin-bottom:14px;cursor:pointer;">I have sent it</button>
+            </div>
+
             <div class="field">
-              <label>Network</label>
-              <select id="cryptoNetwork">
-                <option value="USDT-TRC20">USDT (TRC-20)</option>
-                <option value="USDT-ERC20">USDT (ERC-20)</option>
-                <option value="BTC">Bitcoin</option>
-                <option value="ETH">Ethereum</option>
-              </select>
+              <label for="amount" id="amountLabel">Deposit amount (USD)</label>
+              <input type="number" id="amount" min="1" step="0.01" required placeholder="1000.00">
             </div>
-            <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:11.5px;color:var(--text-1);margin-bottom:14px;word-break:break-all;">
-              <div style="margin-bottom:4px;color:var(--text-2);">Demo deposit address</div>
-              <b class="num" style="color:var(--text-0);">TDemoVfxAddr8f3k29xNqPz61yLmWv7Rt4Hc</b>
-            </div>
-            <label class="upload-slot" id="proofSlot" style="border:1.5px dashed var(--border);border-radius:10px;padding:16px;text-align:center;margin-bottom:14px;cursor:pointer;display:block;">
-              <div style="font-size:20px;margin-bottom:4px;">📎</div>
-              <div style="font-size:12.5px;">Upload screenshot proof of deposit</div>
-              <div style="font-size:11px;color:var(--text-2);margin-top:4px;" id="proofName">No file selected</div>
-              <input type="file" id="proofFile" accept="image/*" style="display:none;">
-            </label>
-            <p style="font-size:11px;color:var(--text-2);margin-bottom:14px;">Demo only — do not send real crypto to this address. Submitting puts this deposit into <b>pending</b> until an admin reviews your proof and approves it.</p>
-          </div>
-
-          <div class="field">
-            <label for="amount" id="amountLabel">Deposit amount (USD)</label>
-            <input type="number" id="amount" min="1" step="0.01" required placeholder="1000.00">
-          </div>
-          <button type="submit" class="btn btn-primary btn-block" id="walletSubmitBtn">Deposit funds</button>
-        </form>
-        <p style="margin-top:14px;color:var(--text-2);font-size:11.5px;">Simulated flow — writes to a mock ledger. No real payment processor is contacted.</p>
+            <button type="submit" class="btn btn-primary btn-block" id="walletSubmitBtn" style="cursor:pointer;">Deposit funds</button>
+          </form>
+          <p style="margin-top:14px;color:var(--text-2);font-size:11.5px;">Demo flow — no real payment processor is contacted.</p>
+        </div>
       </div>
 
       <div class="card" id="ledger">
@@ -167,6 +168,41 @@ function renderAccountUI(){
     badge.style.background = 'rgba(240,185,11,0.14)';
     badge.style.color = '#F0B90B';
   }
+
+  const demoNote = document.getElementById('demoFundingNote');
+  const fundingSection = document.getElementById('fundingSection');
+  if(acc === 'demo'){
+    demoNote.style.display = 'block';
+    fundingSection.style.display = 'none';
+  } else {
+    demoNote.style.display = 'none';
+    fundingSection.style.display = 'block';
+    applyRealAccountMethodRestrictions();
+  }
+}
+
+// Real account: only Crypto is available for now — Card and Bank transfer are marked
+// "Coming soon" and can't be selected.
+function applyRealAccountMethodRestrictions(){
+  const cardChip = document.querySelector('.method-chip[data-method="card"]');
+  const bankChip = document.querySelector('.method-chip[data-method="bank_transfer"]');
+  [cardChip, bankChip].forEach(chip=>{
+    if(!chip) return;
+    if(!chip.dataset.originalLabel) chip.dataset.originalLabel = chip.textContent;
+    chip.innerHTML = chip.dataset.originalLabel + ' <span style="font-size:9.5px;color:var(--text-2);">— Coming soon</span>';
+    chip.style.opacity = '0.5';
+    chip.style.cursor = 'not-allowed';
+    chip.classList.add('disabled-chip');
+  });
+  // Force selection to Crypto if Card/Bank was previously active
+  const cryptoChip = document.querySelector('.method-chip[data-method="crypto"]');
+  if(document.querySelector('.method-chip.active')?.dataset.method !== 'crypto'){
+    document.querySelectorAll('.method-chip').forEach(c=>c.classList.remove('active'));
+    cryptoChip.classList.add('active');
+    currentMethod = 'crypto';
+    document.querySelectorAll('.method-details').forEach(d=>d.style.display='none');
+    document.getElementById('methodDetails-crypto').style.display='block';
+  }
 }
 
 async function refreshWallet(){
@@ -206,6 +242,7 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 
 document.querySelectorAll('.method-chip').forEach(chip=>{
   chip.addEventListener('click', ()=>{
+    if(chip.classList.contains('disabled-chip')) return; // Card/Bank disabled on Real account
     document.querySelectorAll('.method-chip').forEach(c=>c.classList.remove('active'));
     chip.classList.add('active');
     currentMethod = chip.dataset.method;
@@ -216,14 +253,13 @@ document.querySelectorAll('.method-chip').forEach(chip=>{
 });
 document.getElementById('bankRef').textContent = 'VFX-' + Math.random().toString(36).slice(2,8).toUpperCase();
 
-const proofFile = document.getElementById('proofFile');
-const proofSlot = document.getElementById('proofSlot');
-proofFile.addEventListener('change', ()=>{
-  if(proofFile.files[0]){
-    document.getElementById('proofName').textContent = proofFile.files[0].name;
-    proofSlot.style.borderStyle = 'solid';
-    proofSlot.style.borderColor = 'var(--green)';
-  }
+let cryptoConfirmed = false;
+const cryptoConfirmBtn = document.getElementById('cryptoConfirmBtn');
+cryptoConfirmBtn.addEventListener('click', ()=>{
+  cryptoConfirmed = true;
+  cryptoConfirmBtn.textContent = '✓ Confirmed';
+  cryptoConfirmBtn.style.borderColor = 'var(--green)';
+  cryptoConfirmBtn.style.color = 'var(--green)';
 });
 
 document.getElementById('walletForm').addEventListener('submit', async (e)=>{
@@ -243,14 +279,14 @@ document.getElementById('walletForm').addEventListener('submit', async (e)=>{
     };
   }
   if(currentTab==='deposit' && currentMethod==='crypto'){
-    if(!proofFile.files[0]){
-      errBox.textContent = 'Upload a screenshot proof of your deposit before submitting.';
+    if(!cryptoConfirmed){
+      errBox.textContent = 'Confirm you have sent the transfer before submitting.';
       errBox.style.display='block';
       return;
     }
     payload.crypto = {
       network: document.getElementById('cryptoNetwork').value,
-      proofFilename: proofFile.files[0].name,
+      proofFilename: 'user-confirmed', // no file upload — user explicitly confirmed via the "I have sent it" button
     };
   }
 
@@ -265,7 +301,12 @@ document.getElementById('walletForm').addEventListener('submit', async (e)=>{
     }
     okBox.style.display='block';
     document.getElementById('amount').value='';
-    if(proofFile.files[0]){ proofFile.value=''; document.getElementById('proofName').textContent='No file selected'; proofSlot.style.borderStyle='dashed'; proofSlot.style.borderColor='var(--border)'; }
+    if(cryptoConfirmed){
+      cryptoConfirmed = false;
+      cryptoConfirmBtn.textContent = 'I have sent it';
+      cryptoConfirmBtn.style.borderColor = '';
+      cryptoConfirmBtn.style.color = '';
+    }
     await refreshWallet();
     await refreshLedger();
   }catch(err){

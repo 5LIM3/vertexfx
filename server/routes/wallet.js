@@ -81,12 +81,12 @@ router.post('/deposit', requireAuth, (req, res) => {
     const network = crypto?.network;
     const proofFilename = crypto?.proofFilename;
     if (!network) return res.status(400).json({ error: 'Select a network' });
-    if (!proofFilename) return res.status(400).json({ error: 'Upload a screenshot of your transaction as proof of deposit' });
+    if (!proofFilename) return res.status(400).json({ error: 'Confirm you have sent the transfer before submitting' });
 
     db.prepare(
       'INSERT INTO ledger (user_id, account_type, type, amount, status, method, reference, note, created_at) VALUES (?,?,?,?,?,?,?,?,?)'
     ).run(req.userId, accountType, 'deposit', amt, 'pending', m, ref,
-      `Awaiting admin review — network: ${network}, proof: ${proofFilename}`, now);
+      `Awaiting admin review — network: ${network}, user confirmed sent`, now);
 
     return res.json({ ok: true, reference: ref, status: 'pending', message: 'Submitted for review. Your balance will update once an admin verifies the transaction.' });
   }

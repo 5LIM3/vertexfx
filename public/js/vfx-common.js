@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const user = await VFX.currentUser();
   if (user) {
     const adminLink = user.role === 'admin' ? `<a href="/admin.html" class="btn btn-ghost">Admin</a>` : '';
-    slot.innerHTML = `<a href="/dashboard.html" class="btn btn-ghost">Dashboard</a><a href="/wallet.html" class="btn btn-ghost">Wallet</a><a href="/wallet.html#ledger" class="btn btn-ghost">Transactions</a><a href="/instruments.html" class="btn btn-ghost">Instruments</a><a href="/security.html" class="btn btn-ghost">Security</a>${adminLink}<button class="btn btn-outline" id="vfxLogoutBtn">⏻ Log out</button>`;
+    slot.innerHTML = `<a href="/dashboard.html" class="btn btn-ghost">Dashboard</a><a href="/wallet.html" class="btn btn-ghost">Wallet</a><a href="/wallet.html#ledger" class="btn btn-ghost">Transactions</a><a href="/instruments.html" class="btn btn-ghost">Instruments</a><a href="/security.html" class="btn btn-ghost">Security</a>${adminLink}<button class="btn btn-outline" id="vfxLogoutBtn">Log out</button>`;
     const btn = document.getElementById('vfxLogoutBtn');
     if (btn) btn.addEventListener('click', () => VFX.logout());
   } else {
@@ -93,9 +93,15 @@ document.addEventListener('DOMContentLoaded', () => {
     panel.classList.toggle('mobile-open');
   });
   // Close the menu after tapping any link/button inside it (delegated, since
-  // nav-cta's content is injected dynamically after this listener is attached)
+  // nav-cta's content is injected dynamically after this listener is attached).
+  // IMPORTANT: deferred via setTimeout — closing synchronously (display:none)
+  // during the same click that's navigating a real <a href> can cancel the
+  // navigation on some mobile browsers (notably iOS Safari), since the link
+  // gets hidden/detached before the browser commits to following it.
   panel.addEventListener('click', (e) => {
-    if (e.target.closest('a, button')) panel.classList.remove('mobile-open');
+    if (e.target.closest('a, button')) {
+      setTimeout(() => panel.classList.remove('mobile-open'), 0);
+    }
   });
   window.addEventListener('resize', () => {
     if (window.innerWidth > 900) panel.classList.remove('mobile-open');

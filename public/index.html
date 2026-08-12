@@ -60,32 +60,26 @@
     </div>
     <div class="feature-grid">
       <div class="feature-card">
-        <div class="icon">◆</div>
         <h3>Advanced charting</h3>
         <p>Interactive candlestick charts across six timeframes, powered by a live market data engine and streamed in real time.</p>
       </div>
       <div class="feature-card">
-        <div class="icon">⇄</div>
         <h3>Fast order execution</h3>
         <p>Buy and sell orders fill instantly at the platform's current price, with margin, P&amp;L, and position tracking handled automatically.</p>
       </div>
       <div class="feature-card">
-        <div class="icon">🔒</div>
         <h3>Secure account access</h3>
         <p>Email verification and two-factor authentication protect every account, with a dedicated identity verification flow.</p>
       </div>
       <div class="feature-card">
-        <div class="icon">📊</div>
         <h3>Market depth &amp; order flow</h3>
         <p>Live order book depth and trade activity update continuously, giving you a real sense of market movement.</p>
       </div>
       <div class="feature-card">
-        <div class="icon">🧭</div>
         <h3>Four asset classes</h3>
         <p>Forex majors, metals, digital assets, and global indices — each with its own volatility profile and contract sizing.</p>
       </div>
       <div class="feature-card">
-        <div class="icon">🗂</div>
         <h3>Full trading history</h3>
         <p>Every position, order, and transaction is recorded, giving you a complete and auditable account history.</p>
       </div>
@@ -134,7 +128,7 @@
     const { announcements } = await VFX.api('/api/announcements/active');
     if(announcements && announcements.length){
       const banner = document.getElementById('announcementBanner');
-      banner.textContent = '📢 ' + announcements[0].message;
+      banner.textContent = announcements[0].message;
       banner.style.display = 'block';
     }
   }catch(e){}

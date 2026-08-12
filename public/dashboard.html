@@ -51,7 +51,7 @@
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
   .ticker-strip{overflow:hidden;}
   .ticker-track{display:flex;gap:26px;flex:1;overflow:visible;white-space:nowrap;animation:ticker-scroll 40s linear infinite;width:max-content;}
-  .ticker-track:hover{animation-play-state:paused;}
+  @media(hover:hover){ .ticker-track:hover{animation-play-state:paused;} }
   @keyframes ticker-scroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
   .ticker-item{display:flex;align-items:center;gap:7px;flex-shrink:0;}
   .ticker-item .sym{color:var(--text-1);font-weight:600;} .ticker-item .chg{font-family:var(--font-mono);font-weight:600;}
@@ -182,11 +182,13 @@
     .op-tabs button{font-size:12px;}
   }
   /* Tables with many columns need horizontal scroll on narrow screens rather than squeezing/breaking */
-  .bottom-tabs > div{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .bottom-tabs > div{overflow-x:auto;-webkit-overflow-scrolling:touch;}  .env-banner{background:var(--bg-1);border-bottom:1px solid var(--border);color:var(--text-2);font-size:11px;text-align:center;padding:6px 16px;letter-spacing:0.2px;}
+  .env-banner b{color:var(--text-1);font-weight:700;letter-spacing:0.4px;margin-right:7px;}
 </style>
 </head>
 <body>
 
+<div class="env-banner"><b>DEMO ENVIRONMENT</b>This environment is provided for demonstration purposes.</div>
 <header class="topbar">
   <div id="backBtnSlot" style="margin-right:2px;"></div>
   <a href="/" class="brand"><img src="/assets/logo-full.svg" alt="VertexFX"></a>
@@ -198,7 +200,7 @@
     <a href="/instruments.html">Instruments</a>
     <a href="/security.html">Security</a>
     <a href="/admin.html" id="adminNavLink" style="display:none;">Admin</a>
-    <a href="#" id="mobileLogoutLink" class="mobile-only-link">⏻ Log out</a>
+    <a href="#" id="mobileLogoutLink" class="mobile-only-link">Log out</a>
   </nav>
   <div class="topbar-right">
     <div id="accountSwitcher"></div>
@@ -210,12 +212,12 @@
       </div>
     </div>
     <a href="/wallet.html" class="deposit-btn">Deposit</a>
-    <button class="icon-btn" id="logoutBtn" title="Log out">⏻</button>
+    <button class="btn btn-outline" id="logoutBtn" style="padding:8px 14px;font-size:12.5px;cursor:pointer;">Log out</button>
   </div>
 </header>
 
 <div class="ticker-strip">
-  <div class="live-tag"><span class="blip"></span>LIVE (SIMULATED)</div>
+  <div class="live-tag"><span class="blip"></span></div>
   <div class="ticker-track" id="tickerTrack"></div>
   <div id="clock" class="num" style="color:var(--text-2);flex-shrink:0;">00:00:00</div>
 </div>
@@ -238,7 +240,7 @@
         <button class="tf-btn" data-tf="15m">15m</button><button class="tf-btn active" data-tf="1h">1h</button>
         <button class="tf-btn" data-tf="4h">4h</button><button class="tf-btn" data-tf="1d">D</button>
       </div>
-      <button type="button" id="tvChartBtn" class="btn-ghost" style="padding:7px 12px;border-radius:7px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--bg-2);color:var(--text-1);cursor:pointer;">📈 Real Chart ↗</button>
+      <button type="button" id="tvChartBtn" class="btn-ghost" style="padding:7px 12px;border-radius:7px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--bg-2);color:var(--text-1);cursor:pointer;">Real Chart ↗</button>
     </div>
     <div class="chart-header">
       <div class="ohlc">
@@ -282,7 +284,7 @@
         <div class="field-label" style="margin-bottom:6px;">Volume (Lots)</div>
         <div class="stepper">
           <button id="volDown">−</button>
-          <input type="text" id="volInput" value="0.10" readonly>
+          <input type="text" id="volInput" value="0.10" inputmode="decimal">
           <button id="volUp">+</button>
         </div>
         <div class="lot-hint" id="lotHint">1 Lot = 100,000 units</div>
@@ -526,6 +528,19 @@ let volLots = 0.10;
 function refreshVol(){ document.getElementById('volInput').value = volLots.toFixed(2); updateOrderPrices(); }
 document.getElementById('volUp').addEventListener('click', ()=>{ volLots = +(volLots+0.10).toFixed(2); refreshVol(); });
 document.getElementById('volDown').addEventListener('click', ()=>{ volLots = Math.max(0.01, +(volLots-0.10).toFixed(2)); refreshVol(); });
+const volInputEl = document.getElementById('volInput');
+volInputEl.addEventListener('input', ()=>{
+  // Live-update margin as the user types, without forcing formatting mid-keystroke
+  const n = parseFloat(volInputEl.value);
+  if(!isNaN(n) && n > 0) { volLots = n; updateOrderPrices(); }
+});
+volInputEl.addEventListener('blur', ()=>{
+  let n = parseFloat(volInputEl.value);
+  if(isNaN(n) || n <= 0) n = 0.01;
+  n = Math.min(100, Math.max(0.01, n));
+  volLots = +n.toFixed(2);
+  refreshVol();
+});
 
 async function placeTrade(side){
   const errBox = document.getElementById('orderError');
