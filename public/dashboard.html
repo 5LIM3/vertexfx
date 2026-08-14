@@ -50,7 +50,7 @@
   .live-tag .blip{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px var(--green-soft);animation:pulse 1.6s infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
   .ticker-strip{overflow:hidden;}
-  .ticker-track{display:flex;gap:26px;flex:1;overflow:visible;white-space:nowrap;animation:ticker-scroll 40s linear infinite;width:max-content;}
+  .ticker-track{display:flex;gap:26px;flex:1;overflow:visible;white-space:nowrap;animation:ticker-scroll 22s linear infinite;width:max-content;}
   @media(hover:hover){ .ticker-track:hover{animation-play-state:paused;} }
   @keyframes ticker-scroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
   .ticker-item{display:flex;align-items:center;gap:7px;flex-shrink:0;}
@@ -77,7 +77,6 @@
   .tf-group{display:flex;gap:2px;background:var(--bg-2);padding:3px;border-radius:7px;}
   .tf-btn{padding:5px 10px;border:none;background:transparent;color:var(--text-1);border-radius:5px;font-size:12px;font-weight:600;}
   .tf-btn.active{background:var(--bg-3);color:var(--text-0);}
-  .chart-header{display:flex;align-items:center;gap:14px;padding:10px 16px;flex-wrap:wrap;}
   .ohlc{display:flex;gap:12px;font-family:var(--font-mono);font-size:12px;color:var(--text-1);} .ohlc b{color:var(--text-0);}
   .price-box{display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 16px;border-radius:8px;font-family:var(--font-mono);cursor:pointer;}
   .price-box.sell{background:var(--red-soft);border:1px solid rgba(246,70,93,0.35);}
@@ -119,7 +118,6 @@
   .meta-row{display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-1);} .meta-row b{color:var(--text-0);font-family:var(--font-mono);}
   .form-error{background:rgba(246,70,93,0.1);border:1px solid rgba(246,70,93,0.3);color:#ff8fa0;padding:8px 10px;border-radius:8px;font-size:12px;display:none;}
 
-  .depth-wrap{padding:12px 16px;flex:1;}
   .depth-title{font-size:10.5px;color:var(--text-1);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:8px;}
   .depth-row{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;padding:3px 6px;font-family:var(--font-mono);font-size:11.5px;position:relative;border-radius:4px;overflow:hidden;}
   .depth-row .bar{position:absolute;top:0;bottom:0;right:0;z-index:0;opacity:.16;}
@@ -151,7 +149,7 @@
     .order-panel{order:2;}
     .watchlist-panel{order:3;max-height:340px;}
   }
-  .nav-toggle-db{display:none;background:none;border:none;color:var(--text-0);font-size:20px;cursor:pointer;padding:4px 8px;}
+  .nav-toggle-db{display:none;background:none;border:none;color:var(--text-0);font-size:20px;cursor:pointer;padding:4px 8px;margin-left:auto;}
   .navlinks.mobile-open{display:flex !important;position:absolute;top:56px;left:0;right:0;flex-direction:column;background:var(--bg-1);border-bottom:1px solid var(--border);padding:8px 16px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,0.5);}
   .navlinks.mobile-open a{padding:12px 8px;}
 
@@ -172,12 +170,10 @@
     .live-tag{font-size:11px;}
     #clock{display:none;}
     .chart-toolbar{flex-wrap:wrap;gap:8px;padding:8px 12px;}
-    .chart-header{flex-wrap:wrap;gap:10px;padding:8px 12px;}
     .price-box{padding:6px 12px;}
     .op-body{padding:12px;}
     .positions-table{font-size:11px;}
     .positions-table th,.positions-table td{padding:8px 10px;}
-    .depth-wrap{padding:10px 12px;}
     .statusbar{font-size:10.5px;padding:8px 12px;gap:12px;}
     .op-tabs button{font-size:12px;}
   }
@@ -242,18 +238,6 @@
       </div>
       <button type="button" id="tvChartBtn" class="btn-ghost" style="padding:7px 12px;border-radius:7px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--bg-2);color:var(--text-1);cursor:pointer;">Real Chart ↗</button>
     </div>
-    <div class="chart-header">
-      <div class="ohlc">
-        <span style="color:var(--text-2);text-transform:uppercase;font-size:9.5px;letter-spacing:0.4px;">Simulation</span>
-        <span>O <b id="oO">—</b></span><span>H <b id="oH">—</b></span>
-        <span>L <b id="oL">—</b></span><span>C <b id="oC" class="num">—</b></span>
-        <span id="oChg" class="num">—</span>
-      </div>
-      <div style="display:flex;gap:8px;margin-left:auto;">
-        <div class="price-box sell" id="sellBox"><span class="lbl">SELL</span><span class="val" id="sellPrice">—</span></div>
-        <div class="price-box buy" id="buyBox"><span class="lbl">BUY</span><span class="val" id="buyPrice">—</span></div>
-      </div>
-    </div>
     <div class="chart-canvas-wrap"><div id="candles"></div></div>
 
     <div class="bottom-tabs">
@@ -308,12 +292,6 @@
       </div>
       <div class="meta-row"><span>Margin Required</span><b id="marginReq">$0.00</b></div>
       <div class="meta-row"><span>Free Margin</span><b id="freeMarginVal">$0.00</b></div>
-    </div>
-    <div class="depth-wrap">
-      <div class="depth-title">Order Book Depth</div>
-      <div id="depthAsks"></div>
-      <div class="depth-mid" id="depthMid">—<span>Mid Price</span></div>
-      <div id="depthBids"></div>
     </div>
   </aside>
 </div>
@@ -405,14 +383,35 @@ function renderWatchlist(){
     row.addEventListener('click', ()=>selectSymbol(row.dataset.sym));
   });
 }
+let tickerBuilt = false;
 function renderTicker(){
-  const html = SYMBOLS.map(m=>{
-    const s = snapshot[m.sym]; if(!s) return '';
+  const track = document.getElementById('tickerTrack');
+  if(!tickerBuilt){
+    // Build the DOM structure exactly once. Every symbol gets stable elements we can
+    // update in place afterward — the previous version replaced the ENTIRE innerHTML
+    // every single second (every price tick), which on iOS Safari repeatedly tore down
+    // and rebuilt the animating element's children, visibly freezing/restarting the
+    // scroll. Building once and only touching .textContent afterward fixes this.
+    const itemsHtml = SYMBOLS.map(m => `
+      <div class="ticker-item" data-tsym="${m.sym}">
+        <span class="sym">${m.sym}</span>
+        <span class="num tprice">—</span>
+        <span class="chg tchg">—</span>
+      </div>`).join('');
+    track.innerHTML = itemsHtml + itemsHtml; // doubled once for the seamless -50% loop
+    tickerBuilt = true;
+  }
+  track.querySelectorAll('.ticker-item').forEach(item=>{
+    const sym = item.dataset.tsym;
+    const s = snapshot[sym];
+    const m = SYMBOLS.find(x=>x.sym===sym);
+    if(!s || !m) return;
     const dir = s.chgPct>=0?'up':'down';
-    return `<div class="ticker-item"><span class="sym">${m.sym}</span><span class="num">${s.price.toFixed(m.digits)}</span><span class="chg ${dir}">${s.chgPct>=0?'+':''}${s.chgPct.toFixed(2)}%</span></div>`;
-  }).join('');
-  // Duplicated so translateX(-50%) loops seamlessly with no visible seam/jump.
-  document.getElementById('tickerTrack').innerHTML = html + html;
+    item.querySelector('.tprice').textContent = s.price.toFixed(m.digits);
+    const chgEl = item.querySelector('.tchg');
+    chgEl.textContent = (s.chgPct>=0?'+':'') + s.chgPct.toFixed(2) + '%';
+    chgEl.className = 'num chg tchg ' + dir;
+  });
 }
 
 async function selectSymbol(sym){
@@ -469,17 +468,8 @@ async function loadCandles(){
   }catch(e){}
 }
 function updateOHLC(){
-  if(!candleData.length) return;
-  const last = candleData[candleData.length-1];
-  const dig = digitsFor(selSym);
-  document.getElementById('oO').textContent = last.o.toFixed(dig);
-  document.getElementById('oH').textContent = last.h.toFixed(dig);
-  document.getElementById('oL').textContent = last.l.toFixed(dig);
-  document.getElementById('oC').textContent = last.c.toFixed(dig);
-  const chg = last.c-last.o, pct = (chg/last.o)*100;
-  const chgEl = document.getElementById('oChg');
-  chgEl.textContent = `${chg>=0?'+':''}${chg.toFixed(dig)} (${pct>=0?'+':''}${pct.toFixed(2)}%)`;
-  chgEl.className = 'num ' + (chg>=0?'up':'down');
+  // OHLC readout removed from the UI (redundant with the order panel's own Buy/Sell) —
+  // kept as a no-op since it's still called from a couple of places, harmless either way.
 }
 document.getElementById('tfGroup').addEventListener('click', e=>{
   if(e.target.classList.contains('tf-btn')){
@@ -492,16 +482,8 @@ document.getElementById('tfGroup').addEventListener('click', e=>{
 
 /* ================= DEPTH ================= */
 function renderDepth(){
-  const s = snapshot[selSym]; if(!s || !s.depth) return;
-  const dig = s.digits;
-  const maxSz = Math.max(...s.depth.asks.map(a=>a.size), ...s.depth.bids.map(b=>b.size), 1);
-  document.getElementById('depthAsks').innerHTML = s.depth.asks.slice(0,8).reverse().map(a=>`
-    <div class="depth-row sell"><div class="bar" style="width:${(a.size/maxSz)*100}%"></div>
-      <span class="px">${a.price.toFixed(dig)}</span><span class="sz">${a.size}</span><span class="dp"></span></div>`).join('');
-  document.getElementById('depthBids').innerHTML = s.depth.bids.slice(0,8).map(b=>`
-    <div class="depth-row buy"><div class="bar" style="width:${(b.size/maxSz)*100}%"></div>
-      <span class="px">${b.price.toFixed(dig)}</span><span class="sz">${b.size}</span><span class="dp"></span></div>`).join('');
-  document.getElementById('depthMid').innerHTML = `${s.price.toFixed(dig)}<span>Mid Price</span>`;
+  // Order Book Depth panel removed from the UI — kept as a no-op since it's
+  // still called from a couple of places, harmless either way.
 }
 
 /* ================= ORDER PANEL ================= */
@@ -509,8 +491,6 @@ function updateOrderPrices(){
   const s = snapshot[selSym]; if(!s) return;
   const dig = s.digits;
   const spread = s.price * 0.00006;
-  document.getElementById('sellPrice').textContent = (s.price-spread).toFixed(dig);
-  document.getElementById('buyPrice').textContent = (s.price+spread).toFixed(dig);
   document.getElementById('sellBtnPrice').textContent = (s.price-spread).toFixed(dig);
   document.getElementById('buyBtnPrice').textContent = (s.price+spread).toFixed(dig);
   const vol = parseFloat(document.getElementById('volInput').value) || 0.1;
