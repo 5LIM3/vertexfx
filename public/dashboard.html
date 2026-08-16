@@ -83,7 +83,16 @@
   .price-box.buy{background:var(--blue-soft);border:1px solid rgba(59,130,246,0.35);}
   .price-box .lbl{font-size:9.5px;letter-spacing:0.5px;color:var(--text-1);font-family:var(--font-body);}
   .price-box.sell .val{color:var(--red);font-weight:700;font-size:14px;} .price-box.buy .val{color:var(--blue);font-weight:700;font-size:14px;}
-  .chart-canvas-wrap{position:relative;padding:0 8px;} #candles{width:100%;height:400px;}
+  .chart-canvas-wrap{position:relative;padding:0 8px;} #candles{width:100%;height:clamp(380px,58vh,520px);}
+  .chart-loading-overlay{position:absolute;inset:0 8px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;background:var(--bg-1);color:var(--text-2);font-family:var(--font-mono);font-size:12.5px;z-index:5;transition:opacity .15s;pointer-events:none;}
+  .chart-loading-overlay .spin{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--accent);animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .conn-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-2);font-family:var(--font-mono);}
+  .conn-status .dot{width:6px;height:6px;border-radius:50%;background:var(--text-2);}
+  .conn-status.live .dot{background:var(--green);box-shadow:0 0 0 3px var(--green-soft);animation:pulse 1.6s infinite;}
+  .conn-status.live{color:var(--text-1);}
+  .conn-status.down .dot{background:var(--red);box-shadow:0 0 0 3px var(--red-soft);}
+  .conn-status.down{color:var(--red);}
 
   .bottom-tabs{border-top:1px solid var(--border-soft);}
   .bt-nav{display:flex;gap:4px;padding:10px 16px 0;}
@@ -170,6 +179,7 @@
     .live-tag{font-size:11px;}
     #clock{display:none;}
     .chart-toolbar{flex-wrap:wrap;gap:8px;padding:8px 12px;}
+    #candles{height:clamp(360px,46vh,440px);}
     .price-box{padding:6px 12px;}
     .op-body{padding:12px;}
     .positions-table{font-size:11px;}
@@ -236,9 +246,13 @@
         <button class="tf-btn" data-tf="15m">15m</button><button class="tf-btn active" data-tf="1h">1h</button>
         <button class="tf-btn" data-tf="4h">4h</button><button class="tf-btn" data-tf="1d">D</button>
       </div>
+      <span class="conn-status" id="connStatus"><span class="dot"></span><span id="connStatusLabel">Connecting…</span></span>
       <button type="button" id="tvChartBtn" class="btn-ghost" style="padding:7px 12px;border-radius:7px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--bg-2);color:var(--text-1);cursor:pointer;">Real Chart ↗</button>
     </div>
-    <div class="chart-canvas-wrap"><div id="candles"></div></div>
+    <div class="chart-canvas-wrap">
+      <div id="candles"></div>
+      <div class="chart-loading-overlay" id="chartLoading"><div class="spin"></div><span>Loading market data…</span></div>
+    </div>
 
     <div class="bottom-tabs">
       <div class="bt-nav" id="btNav">
@@ -425,15 +439,15 @@ async function selectSymbol(sym){
 }
 
 /* ================= CHART (TradingView Lightweight Charts) ================= */
-let chart, candleSeries;
+let chart, candleSeries, volumeSeries;
 
 function initChart(){
   const container = document.getElementById('candles');
   chart = LightweightCharts.createChart(container, {
-    height: 400,
+    autoSize: true, // tracks the container's CSS size (desktop + mobile) instead of a hardcoded height
     layout: { background: { type: 'solid', color: 'transparent' }, textColor: '#9AA3B8', fontFamily: "'JetBrains Mono', monospace", fontSize: 11 },
     grid: { vertLines: { color: '#1D2330' }, horzLines: { color: '#1D2330' } },
-    rightPriceScale: { borderColor: '#252C3D' },
+    rightPriceScale: { borderColor: '#252C3D', scaleMargins: { top: 0.08, bottom: 0.26 } },
     timeScale: { borderColor: '#252C3D', timeVisible: true, secondsVisible: false },
     crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
   });
@@ -442,11 +456,12 @@ function initChart(){
     borderUpColor: '#0ECB81', borderDownColor: '#F6465D',
     wickUpColor: '#0ECB81', wickDownColor: '#F6465D',
   });
-  new ResizeObserver(entries => {
-    if (!entries.length) return;
-    const { width } = entries[0].contentRect;
-    chart.applyOptions({ width });
-  }).observe(container);
+  volumeSeries = chart.addHistogramSeries({
+    priceFormat: { type: 'volume' },
+    priceScaleId: 'vol',
+    color: '#2A3142',
+  });
+  chart.priceScale('vol').applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
 }
 
 function toChartBars(candles){
@@ -457,15 +472,40 @@ function toChartBars(candles){
     .filter(b => { if (seen.has(b.time)) return false; seen.add(b.time); return true; })
     .sort((a, b) => a.time - b.time);
 }
+function toVolumeBars(candles){
+  const seen = new Set();
+  return candles
+    .map(b => ({ time: Math.floor(b.t / 1000), value: b.v || 0, color: b.c >= b.o ? 'rgba(14,203,129,0.5)' : 'rgba(246,70,93,0.5)' }))
+    .filter(b => { if (seen.has(b.time)) return false; seen.add(b.time); return true; })
+    .sort((a, b) => a.time - b.time);
+}
+
+function setChartLoading(isLoading){
+  const el = document.getElementById('chartLoading');
+  el.style.opacity = isLoading ? '1' : '0';
+  el.style.visibility = isLoading ? 'visible' : 'hidden';
+}
 
 async function loadCandles(){
+  setChartLoading(true);
   try{
+    // Match the price scale precision to this instrument's real digits (e.g. 5dp for
+    // EUR/USD) instead of the library's 2dp default.
+    const dig = digitsFor(selSym);
+    candleSeries.applyOptions({ priceFormat: { type: 'price', precision: dig, minMove: 1 / Math.pow(10, dig) } });
     const { candles } = await VFX.api(`/api/trading/candles/${selSym}/${currentTf}`);
     candleData = candles;
-    if (candleData.length) candleSeries.setData(toChartBars(candleData));
+    if (candleData.length) {
+      candleSeries.setData(toChartBars(candleData));
+      volumeSeries.setData(toVolumeBars(candleData));
+    }
     chart.timeScale().fitContent();
     updateOHLC();
-  }catch(e){}
+  }catch(e){
+    // Keep the last good chart on screen rather than clearing it to nothing.
+  } finally {
+    setChartLoading(false);
+  }
 }
 function updateOHLC(){
   // OHLC readout removed from the UI (redundant with the order panel's own Buy/Sell) —
@@ -636,9 +676,17 @@ function renderTape(trades){
 }
 
 /* ================= WEBSOCKET LIVE FEED ================= */
+function setConnStatus(state){
+  // state: 'live' | 'down' | 'connecting'
+  const el = document.getElementById('connStatus');
+  const label = document.getElementById('connStatusLabel');
+  el.className = 'conn-status' + (state === 'live' ? ' live' : state === 'down' ? ' down' : '');
+  label.textContent = state === 'live' ? 'Live' : state === 'down' ? 'Connection lost' : 'Connecting…';
+}
 function connectWs(){
   const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
   ws = new WebSocket(`${proto}//${location.host}/ws`);
+  ws.onopen = ()=> setConnStatus('live');
   ws.onmessage = (evt)=>{
     const msg = JSON.parse(evt.data);
     if(msg.type==='snapshot'){ snapshot = msg.data; renderWatchlist(); renderTicker(); renderDepth(); updateOrderPrices(); }
@@ -651,13 +699,18 @@ function connectWs(){
     }
     if(msg.type==='tape'){ window._tapeBuf = msg.data; renderTape(msg.data); }
   };
-  ws.onclose = ()=> setTimeout(connectWs, 2000);
+  ws.onclose = ()=> { setConnStatus('down'); setTimeout(connectWs, 2000); };
+  ws.onerror = ()=> setConnStatus('down');
 }
 function updateLiveCandle(){
   const s = snapshot[selSym]; if(!s || !candleData.length || !candleSeries) return;
   const last = candleData[candleData.length-1];
   last.h = Math.max(last.h, s.price); last.l = Math.min(last.l, s.price); last.c = s.price;
   candleSeries.update({ time: Math.floor(last.t / 1000), open: last.o, high: last.h, low: last.l, close: last.c });
+  // Tick-volume for the still-forming bar: count this tick locally (the server's
+  // authoritative per-second volume for this bar lands next time loadCandles() refetches).
+  last.v = (last.v || 0) + 1;
+  volumeSeries.update({ time: Math.floor(last.t / 1000), value: last.v, color: last.c >= last.o ? 'rgba(14,203,129,0.5)' : 'rgba(246,70,93,0.5)' });
   updateOHLC();
 }
 

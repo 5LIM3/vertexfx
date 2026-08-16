@@ -58,7 +58,16 @@ app.get('/api/health', (req, res) => res.json({ ok: true, uptime: process.uptime
 
 // ---- Static frontend ----
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
-app.use(express.static(PUBLIC_DIR));
+app.use(express.static(PUBLIC_DIR, {
+  // Prevent the browser from silently serving a stale cached dashboard.html/JS after
+  // a deploy — HTML/JS here can change frequently during development and a cached
+  // copy showing old behavior (e.g. an old chart-loading bug) is a confusing dead end.
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html') || filePath.endsWith('.js')) {
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    }
+  },
+}));
 
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api')) return next();
