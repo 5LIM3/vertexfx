@@ -168,13 +168,6 @@
     #logoutBtn{display:none;} /* now lives in the hamburger menu instead, topbar-right was too cramped */
   }
   @media (max-width:640px){
-    .topbar{flex-wrap:wrap;height:auto;padding:8px 12px;gap:8px;}
-    .brand img{height:18px;}
-    .topbar-right{gap:6px;flex-wrap:wrap;}
-    .acct{padding:5px 8px;}
-    .acct .bal{font-size:11.5px;}
-    .acct .label{font-size:9.5px;}
-    .deposit-btn{padding:7px 11px;font-size:12px;}
     .ticker-strip{padding:0 12px;height:32px;font-size:11px;}
     .live-tag{font-size:11px;}
     #clock{display:none;}
@@ -186,6 +179,64 @@
     .positions-table th,.positions-table td{padding:8px 10px;}
     .statusbar{font-size:10.5px;padding:8px 12px;gap:12px;}
     .op-tabs button{font-size:12px;}
+  }
+  /* ===== Mobile header (DEMO/REAL toggle, account card, Deposit) =====
+     Below 768px these three no longer share one rigid row: the toggle and
+     Deposit sit on one line, and the account card — which needs the most
+     room for the username/balance — gets its own full-width line below. */
+  @media (max-width:767px){
+    .topbar{flex-wrap:wrap;height:auto;padding:8px 12px;gap:8px;}
+    .brand img{height:18px;}
+    .topbar-right{
+      flex:1 1 100%;
+      width:100%;
+      min-width:0;
+      flex-wrap:wrap;
+      justify-content:space-between;
+      gap:8px;
+    }
+    #accountSwitcher{ order:1; flex-shrink:0; }
+    /* Inline-styled buttons from vfx-common.js need !important to win over their own style="" attribute */
+    #accountSwitcher button[data-acc]{
+      padding:12px 16px !important;
+      font-size:13px !important;
+      min-height:44px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .deposit-btn{
+      order:2; flex-shrink:0; padding:10px 16px; font-size:13px;
+      min-height:44px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+    #logoutBtn{ order:3; }
+    .acct{
+      order:4;
+      flex:1 1 100%;
+      width:100%;
+      min-width:0;
+      padding:8px 10px;
+    }
+    .acct .meta{ min-width:0; flex:1; }
+    .acct .meta .label{
+      min-width:0;
+      max-width:100%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      display:block;
+      font-size:10px;
+    }
+    /* Balance is never truncated — only the username/label line above it can be */
+    .acct .meta .bal{ font-size:13px; white-space:nowrap; }
+  }
+  @media (max-width:374px){
+    #accountSwitcher button[data-acc]{ padding:11px 13px !important; }
+    .deposit-btn{ padding:9px 13px; font-size:12.5px; }
+    .acct .meta .bal{ font-size:12px; }
   }
   /* Tables with many columns need horizontal scroll on narrow screens rather than squeezing/breaking */
   .bottom-tabs > div{overflow-x:auto;-webkit-overflow-scrolling:touch;}  .env-banner{background:var(--bg-1);border-bottom:1px solid var(--border);color:var(--text-2);font-size:11px;text-align:center;padding:6px 16px;letter-spacing:0.2px;}
