@@ -1,12 +1,13 @@
 /**
  * Real market data feed.
  * ------------------------------------------------------------------
- * - Crypto (BTC/ETH/SOL): CoinGecko public API — no key required.
- * - Forex majors: Frankfurter.app (ECB rates) — no key required.
- * - Metals (XAU/XAG) and indices (US30/US100/SPX500): tries Stooq first
- *   (free, no key), then Yahoo Finance's public chart endpoint (free, no
- *   key) for anything Stooq missed. If TWELVE_DATA_API_KEY is set, Twelve
- *   Data is used instead of both (more reliable, requires free signup).
+ * - Crypto (SOL): CoinGecko public API — no key required.
+ * - Indices (US30/US100/SPX500): tries Stooq first (free, no key), then
+ *   Yahoo Finance's public chart endpoint (free, no key) for anything Stooq
+ *   missed. If TWELVE_DATA_API_KEY is set, Twelve Data is used instead of
+ *   both (more reliable, requires free signup).
+ * - Exotic fiat vs USDT (KWD/SAR/IQD/IRR): CurrencyFreaks (requires a free
+ *   API key — set CURRENCYFREAKS_API_KEY).
  *
  * IMPORTANT: every failure is logged to the console with which symbol and
  * which source failed. A symbol that never appears in the "live" log lines
@@ -18,10 +19,10 @@
  * real starting price the simulation engine bootstraps from.
  */
 
-const COINGECKO_IDS = { BTCUSD: 'bitcoin', ETHUSD: 'ethereum', SOLUSD: 'solana' };
-const TWELVE_DATA_SYMBOLS = { XAUUSD: 'XAU/USD', XAGUSD: 'XAG/USD', US30: 'DJI', US100: 'NDX', SPX500: 'GSPC' };
-const STOOQ_SYMBOLS = { XAUUSD: 'xauusd', XAGUSD: 'xagusd', US30: '^dji', US100: '^ndq', SPX500: '^spx' };
-const YAHOO_SYMBOLS = { XAUUSD: 'GC=F', XAGUSD: 'SI=F', US30: '^DJI', US100: '^NDX', SPX500: '^GSPC' };
+const COINGECKO_IDS = { SOLUSD: 'solana' };
+const TWELVE_DATA_SYMBOLS = { US30: 'DJI', US100: 'NDX', SPX500: 'GSPC' };
+const STOOQ_SYMBOLS = { US30: '^dji', US100: '^ndq', SPX500: '^spx' };
+const YAHOO_SYMBOLS = { US30: '^DJI', US100: '^NDX', SPX500: '^GSPC' };
 
 const TD_KEY = process.env.TWELVE_DATA_API_KEY || '';
 const CURRENCYFREAKS_KEY = process.env.CURRENCYFREAKS_API_KEY || '';
@@ -66,21 +67,6 @@ async function fetchCrypto() {
   return out;
 }
 
-async function fetchForex() {
-  const targets = ['EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF'];
-  const { data, error } = await safeFetchJson(`https://api.frankfurter.app/latest?from=USD&to=${targets.join(',')}`);
-  const out = {};
-  if (error || !data?.rates) { console.warn(`[market-data] Frankfurter (forex) failed: ${error || 'no rates in response'}`); return out; }
-  const r = data.rates;
-  if (r.EUR) out.EURUSD = { price: 1 / r.EUR, source: 'live-frankfurter' }; else console.warn('[market-data] Frankfurter: missing EUR rate');
-  if (r.GBP) out.GBPUSD = { price: 1 / r.GBP, source: 'live-frankfurter' }; else console.warn('[market-data] Frankfurter: missing GBP rate');
-  if (r.JPY) out.USDJPY = { price: r.JPY, source: 'live-frankfurter' }; else console.warn('[market-data] Frankfurter: missing JPY rate');
-  if (r.AUD) out.AUDUSD = { price: 1 / r.AUD, source: 'live-frankfurter' }; else console.warn('[market-data] Frankfurter: missing AUD rate');
-  if (r.CAD) out.USDCAD = { price: r.CAD, source: 'live-frankfurter' }; else console.warn('[market-data] Frankfurter: missing CAD rate');
-  if (r.CHF) out.USDCHF = { price: r.CHF, source: 'live-frankfurter' }; else console.warn('[market-data] Frankfurter: missing CHF rate');
-  return out;
-}
-
 async function fetchTwelveData() {
   const out = {};
   for (const [vfxSym, tdSym] of Object.entries(TWELVE_DATA_SYMBOLS)) {
@@ -117,8 +103,8 @@ async function fetchYahooSymbol(yahooSym) {
   return { price };
 }
 
-/** Metals + indices: Yahoo Finance first (more consistently reliable), Stooq as fallback. Both free/no-key. */
-async function fetchMetalsIndices() {
+/** Indices (US30/US100/SPX500): Yahoo Finance first (more consistently reliable), Stooq as fallback. Both free/no-key. */
+async function fetchIndices() {
   const out = {};
   for (const vfxSym of Object.keys(YAHOO_SYMBOLS)) {
     const yahoo = await fetchYahooSymbol(YAHOO_SYMBOLS[vfxSym]);
@@ -138,30 +124,44 @@ async function fetchMetalsIndices() {
   return out;
 }
 
-/** KWD/USDT — real fiat rate from CurrencyFreaks (free tier, signup required for a key). */
-async function fetchKwdUsdt() {
+/** KWD, SAR, IQD, IRR vs USDT — real fiat rates from CurrencyFreaks (free tier,
+ * signup required for a key). One call covers all four exotic-fiat pairs. */
+async function fetchExoticFiat() {
   if (!CURRENCYFREAKS_KEY) return {};
-  const { data, error } = await safeFetchJson(`https://api.currencyfreaks.com/latest?apikey=${CURRENCYFREAKS_KEY}&symbols=KWD`);
-  if (error) { console.warn(`[market-data] CurrencyFreaks (KWD/USDT) failed: ${error}`); return {}; }
-  const kwdPerUsd = parseFloat(data?.rates?.KWD);
-  if (!kwdPerUsd || isNaN(kwdPerUsd) || kwdPerUsd <= 0) {
-    console.warn(`[market-data] CurrencyFreaks: no usable KWD rate in response — ${JSON.stringify(data).slice(0, 200)}`);
-    return {};
-  }
-  // data.rates.KWD is "KWD per 1 USD" — invert to get "USD(≈USDT) per 1 KWD",
-  // matching our other pairs' convention of base-currency-first quoting.
-  return { KWDUSDT: { price: 1 / kwdPerUsd, source: 'live-currencyfreaks' } };
+  const { data, error } = await safeFetchJson(`https://api.currencyfreaks.com/latest?apikey=${CURRENCYFREAKS_KEY}&symbols=KWD,SAR,IQD,IRR`);
+  if (error) { console.warn(`[market-data] CurrencyFreaks (exotic fiat) failed: ${error}`); return {}; }
+  const rates = data?.rates || {};
+  const out = {};
+
+  const kwdPerUsd = parseFloat(rates.KWD);
+  if (kwdPerUsd > 0) out.KWDUSDT = { price: 1 / kwdPerUsd, source: 'live-currencyfreaks' };
+  else console.warn(`[market-data] CurrencyFreaks: no usable KWD rate — ${JSON.stringify(data).slice(0, 200)}`);
+
+  const sarPerUsd = parseFloat(rates.SAR);
+  if (sarPerUsd > 0) out.SARUSDT = { price: 1 / sarPerUsd, source: 'live-currencyfreaks' };
+  else console.warn(`[market-data] CurrencyFreaks: no usable SAR rate — ${JSON.stringify(data).slice(0, 200)}`);
+
+  const iqdPerUsd = parseFloat(rates.IQD);
+  if (iqdPerUsd > 0) out.IQDUSDT = { price: 1 / iqdPerUsd, source: 'live-currencyfreaks' };
+  else console.warn(`[market-data] CurrencyFreaks: no usable IQD rate — ${JSON.stringify(data).slice(0, 200)}`);
+
+  // IRR is quoted inverted (Rials per 1 USDT) — see the comment on IRRUSDT in
+  // engine.js for why. Also: CurrencyFreaks' IRR is Iran's official/CBI rate
+  // (~42,000), not the free-market/street rate (~1.86M) that's actually
+  // transactable — official-rate data isn't a credible live source for this
+  // one, so IRR intentionally stays on its simulated fallback base for now.
+
+  return out;
 }
 
 /** Fetch everything available right now. Returns { SYM: {price, source} }. */
 async function fetchAllLivePrices() {
-  const [crypto, forex, metalsIdx, kwd] = await Promise.all([
+  const [crypto, metalsIdx, exoticFiat] = await Promise.all([
     fetchCrypto().catch((e) => { console.warn('[market-data] crypto fetch threw:', e.message); return {}; }),
-    fetchForex().catch((e) => { console.warn('[market-data] forex fetch threw:', e.message); return {}; }),
-    (TD_KEY ? fetchTwelveData() : fetchMetalsIndices()).catch((e) => { console.warn('[market-data] metals/indices fetch threw:', e.message); return {}; }),
-    fetchKwdUsdt().catch((e) => { console.warn('[market-data] KWD/USDT fetch threw:', e.message); return {}; }),
+    (TD_KEY ? fetchTwelveData() : fetchIndices()).catch((e) => { console.warn('[market-data] indices fetch threw:', e.message); return {}; }),
+    fetchExoticFiat().catch((e) => { console.warn('[market-data] exotic fiat fetch threw:', e.message); return {}; }),
   ]);
-  return { ...crypto, ...forex, ...metalsIdx, ...kwd };
+  return { ...crypto, ...metalsIdx, ...exoticFiat };
 }
 
 module.exports = { fetchAllLivePrices, TD_KEY_CONFIGURED: !!TD_KEY, CURRENCYFREAKS_CONFIGURED: !!CURRENCYFREAKS_KEY };

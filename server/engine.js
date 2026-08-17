@@ -13,16 +13,6 @@
 // server console for [market-data] warnings, not re-guessing these periodically.
 // `contract` = units represented by "1 lot" — pnl = priceDelta * volumeLots * contract
 const SYMBOL_META = [
-  { sym: 'EURUSD', cat: 'forex',   digits: 5, base: 1.0850, vol: 0.00018, contract: 100000 },
-  { sym: 'GBPUSD', cat: 'forex',   digits: 5, base: 1.2680, vol: 0.00022, contract: 100000 },
-  { sym: 'USDJPY', cat: 'forex',   digits: 3, base: 149.20, vol: 0.020,   contract: 100000 / 149.20 },
-  { sym: 'AUDUSD', cat: 'forex',   digits: 5, base: 0.6520, vol: 0.00016, contract: 100000 },
-  { sym: 'USDCAD', cat: 'forex',   digits: 5, base: 1.3610, vol: 0.00015, contract: 100000 / 1.3610 },
-  { sym: 'USDCHF', cat: 'forex',   digits: 5, base: 0.8820, vol: 0.00014, contract: 100000 / 0.8820 },
-  { sym: 'XAUUSD', cat: 'metals',  digits: 2, base: 4305.00, vol: 1.00,   contract: 100 },
-  { sym: 'XAGUSD', cat: 'metals',  digits: 3, base: 48.500, vol: 0.06,    contract: 5000 },
-  { sym: 'BTCUSD', cat: 'crypto',  digits: 1, base: 63500.0, vol: 42,     contract: 1 },
-  { sym: 'ETHUSD', cat: 'crypto',  digits: 2, base: 3420.0, vol: 5.5,     contract: 1 },
   { sym: 'SOLUSD', cat: 'crypto',  digits: 2, base: 148.5, vol: 0.9,      contract: 1 },
   { sym: 'US30',   cat: 'indices', digits: 1, base: 44500.0, vol: 9.5,    contract: 1 },
   { sym: 'US100',  cat: 'indices', digits: 1, base: 21500.0, vol: 7.0,    contract: 1 },
@@ -30,6 +20,19 @@ const SYMBOL_META = [
   // KWD (Kuwaiti Dinar) quoted against USDT — real fiat rate sourced from
   // CurrencyFreaks (USD/KWD), treating USDT ≈ USD 1:1 as most demo platforms do.
   { sym: 'KWDUSDT', cat: 'forex', digits: 5, base: 3.2500, vol: 0.00035, contract: 100000 },
+  // SAR (Saudi Riyal) — hard-pegged by the Saudi central bank at 3.75 per USD;
+  // real rate sourced from CurrencyFreaks. Extremely low volatility by design (peg).
+  { sym: 'SARUSDT', cat: 'forex', digits: 5, base: 0.26667, vol: 0.00003, contract: 100000 },
+  // IQD (Iraqi Dinar) — managed/quasi-pegged near 1,310 per USD; real rate sourced
+  // from CurrencyFreaks. Quoted the same way as KWD/SAR (USDT value of 1 IQD).
+  { sym: 'IQDUSDT', cat: 'forex', digits: 6, base: 0.000763, vol: 0.0000003, contract: 100000 },
+  // IRR (Iranian Rial) — quoted here as "Rials per 1 USDT" (not the usual
+  // "USDT per unit" convention) because 1 IRR is worth ~$0.0000005: showing that
+  // directly would be unreadable. This inverted convention matches how every real
+  // source (and every Iranian exchange) actually quotes it. Uses the free-market/
+  // street rate (~1.86M), not Iran's official sanctions-era peg (~42,000), since
+  // the free-market rate is the one anyone can actually transact at.
+  { sym: 'IRRUSDT', cat: 'forex', digits: 0, base: 1865000, vol: 1500, contract: 100000 / 1865000 },
 ];
 
 const TF_SECONDS = { '1m': 60, '5m': 300, '15m': 900, '1h': 3600, '4h': 14400, '1d': 86400 };

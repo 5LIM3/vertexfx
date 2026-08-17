@@ -386,7 +386,7 @@
 /* ================= STATE ================= */
 let SYMBOLS = [];             // meta from /api/trading/symbols
 let snapshot = {};            // sym -> {price, digits, cat, chgPct, depth}
-let selSym = 'EURUSD';
+let selSym = 'SOLUSD';
 let currentTf = '1h';
 let candleData = [];
 let positions = [];
@@ -773,11 +773,12 @@ function tickClock(){ document.getElementById('clock').textContent = new Date().
 // one reasonable provider — if one doesn't resolve, edit this map to try another
 // (e.g. swap CAPITALCOM:US100 for PEPPERSTONE:US100).
 const TV_SYMBOL_MAP = {
-  EURUSD: 'OANDA:EURUSD', GBPUSD: 'OANDA:GBPUSD', USDJPY: 'OANDA:USDJPY',
-  AUDUSD: 'OANDA:AUDUSD', USDCAD: 'OANDA:USDCAD', USDCHF: 'OANDA:USDCHF',
-  XAUUSD: 'OANDA:XAUUSD', XAGUSD: 'OANDA:XAGUSD',
-  BTCUSD: 'BINANCE:BTCUSDT', ETHUSD: 'BINANCE:ETHUSDT', SOLUSD: 'BINANCE:SOLUSDT',
+  SOLUSD: 'BINANCE:SOLUSDT',
   US30: 'CAPITALCOM:US30', US100: 'CAPITALCOM:US100', SPX500: 'CAPITALCOM:US500',
+  // KWD/SAR/IQD/IRR intentionally left unmapped — these aren't reliably covered by
+  // mainstream TradingView forex feeds (thin/pegged/sanctions-affected currencies).
+  // openTvChart() already handles a missing mapping gracefully rather than guessing
+  // a ticker that might not resolve or might show the wrong instrument.
 };
 let tvScriptLoaded = false;
 function loadTvScript(){
@@ -819,7 +820,7 @@ async function init(){
   const { symbols, snapshot: snap } = await VFX.api('/api/trading/symbols');
   SYMBOLS = symbols; snapshot = snap;
   renderWatchlist(); renderTicker();
-  await selectSymbol('EURUSD');
+  await selectSymbol('SOLUSD');
   refreshVol();
   await refreshPositions();
   tickClock();
