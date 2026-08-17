@@ -21,7 +21,7 @@ body{background:var(--bg-0);color:var(--text-0);font-family:var(--font-body);lin
    background reads as one continuous image instead of stopping at a hard seam
    right below the nav. Height is generous enough to cover nav+hero on any normal
    viewport; anything below that is already covered by the hero's own dark scrim. */
-body::before{content:"";position:absolute;top:0;left:0;right:0;height:1050px;background-image:url("/assets/hero-globe.jpg");background-repeat:no-repeat;background-position:70% 0%;background-size:cover;opacity:0.65;pointer-events:none;z-index:0;}
+body::before{content:"";position:absolute;top:0;left:0;right:0;height:1050px;background-image:url("/assets/hero-globe.jpg");background-repeat:no-repeat;background-position:70% 25%;background-size:2600px auto;opacity:0.65;pointer-events:none;z-index:0;}
 a{color:inherit;text-decoration:none;}
 img,svg{display:block;max-width:100%;}
 button{font-family:inherit;cursor:pointer;}
@@ -29,7 +29,7 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.01em;}
 .container{max-width:1180px;margin:0 auto;padding:0 24px;position:relative;z-index:1;}
 
 /* Nav */
-.site-nav{display:flex;align-items:center;gap:28px;height:72px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,13,19,0.85);backdrop-filter:blur(10px);z-index:100;}
+.site-nav{display:flex;align-items:center;gap:28px;height:72px;position:sticky;top:0;background:rgba(8,10,18,0.62);backdrop-filter:blur(14px);z-index:100;}
 .site-nav .container{display:flex;align-items:center;gap:28px;width:100%;}
 .brand-logo{height:26px;width:auto;flex-shrink:0;}
 .nav-links{display:flex;gap:6px;flex:1;}
@@ -172,7 +172,7 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.01em;}
 
   /* Atmosphere: on mobile the globe should still read clearly (per reference),
      just with enough scrim near the CTA buttons to stay legible/tappable. */
-  body::before{background-position:75% 0%;opacity:0.8;height:900px;}
+  body::before{background-position:75% 22%;opacity:0.8;height:900px;background-size:2600px auto;}
   .hero::before{background:
       radial-gradient(ellipse 420px 320px at 50% 30%, rgba(8,10,18,0.5), transparent 72%),
       linear-gradient(180deg, rgba(8,10,18,0.18) 0%, rgba(8,10,18,0.32) 26%, rgba(8,10,18,0.85) 68%, rgba(8,10,18,0.97) 100%),
