@@ -42,12 +42,15 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.01em;}
 
 /* Hero */
 .hero{padding:90px 0 70px;text-align:center;position:relative;overflow:hidden;}
-.hero::before{content:"";position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:900px;height:500px;background:
-    radial-gradient(ellipse at center, rgba(124,108,251,0.18), transparent 70%),
-    radial-gradient(ellipse 700px 420px at 78% 60%, rgba(79,70,229,0.10), transparent 65%);
+/* Hero background: real globe/network photo (user-provided), with a dark scrim on
+   top for text legibility. Photo sits in ::before (bottom layer), scrim + brand-purple
+   accent glow sits in ::after (top layer, right under the actual text content). */
+.hero::before{content:"";position:absolute;top:0;left:0;right:0;bottom:0;background-image:url("/assets/hero-globe.jpg");background-repeat:no-repeat;background-position:70% 0%;background-size:cover;opacity:0.65;pointer-events:none;z-index:0;}
+.hero::after{content:"";position:absolute;top:0;left:0;right:0;bottom:0;background:
+    radial-gradient(ellipse 640px 460px at 50% 40%, rgba(8,10,18,0.7), transparent 70%),
+    linear-gradient(180deg, rgba(8,10,18,0.32) 0%, rgba(8,10,18,0.55) 32%, rgba(8,10,18,0.88) 76%, rgba(8,10,18,0.97) 100%),
+    radial-gradient(circle at 82% 8%, rgba(139,92,246,0.18), transparent 50%);
   pointer-events:none;z-index:0;}
-/* Institutional-fintech atmosphere: faint global financial network behind the hero, strongest on the page per design direction */
-.hero::after{content:"";position:absolute;top:-10%;left:-5%;right:-5%;bottom:-10%;background-image:var(--worldmap);background-repeat:no-repeat;background-position:center 40%;background-size:1400px auto;pointer-events:none;z-index:0;opacity:1;}
 .hero-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:20px;background:var(--bg-2);border:1px solid var(--border);color:var(--text-1);font-size:12.5px;font-weight:600;margin-bottom:24px;}
 .hero-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
 .hero h1{font-size:52px;font-weight:700;max-width:820px;margin:0 auto 20px;position:relative;}
@@ -162,10 +165,13 @@ h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.01em;}
   .hero-actions{flex-direction:column;gap:10px;}
   .hero-actions .btn{width:100%;}
 
-  /* Atmosphere: reduce map density/opacity and reposition on mobile so it never
-     competes with headline/body text, per mobile guidance in the design brief. */
-  .hero::after{background-size:900px auto;background-position:center 30%;opacity:0.7;}
-  .hero::before{width:600px;height:380px;}
+  /* Atmosphere: on mobile the globe should still read clearly (per reference),
+     just with enough scrim near the CTA buttons to stay legible/tappable. */
+  .hero::before{background-position:75% 0%;opacity:0.8;}
+  .hero::after{background:
+      radial-gradient(ellipse 420px 320px at 50% 30%, rgba(8,10,18,0.5), transparent 72%),
+      linear-gradient(180deg, rgba(8,10,18,0.18) 0%, rgba(8,10,18,0.32) 26%, rgba(8,10,18,0.85) 68%, rgba(8,10,18,0.97) 100%),
+      radial-gradient(circle at 85% 6%, rgba(139,92,246,0.16), transparent 50%);}
   .section::before{background-size:900px auto;opacity:0.22;}
   .section::after{opacity:0.4;height:120px;}
   .stats-bar::before{background-size:900px auto;opacity:0.22;}
