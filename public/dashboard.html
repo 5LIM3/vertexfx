@@ -50,7 +50,12 @@
   .live-tag .blip{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px var(--green-soft);animation:pulse 1.6s infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
   .ticker-strip{overflow:hidden;}
-  .ticker-track{display:flex;gap:26px;flex:1;overflow:visible;white-space:nowrap;animation:ticker-scroll 22s linear infinite;width:max-content;}
+  /* Dedicated clipping viewport between the live dot and the clock: the scrolling
+     .ticker-track lives inside THIS box and can never render outside of it, no
+     matter what the animation/transform math does — a hard physical guarantee
+     against the track visually passing over the live dot, not just a stacking fix. */
+  .ticker-viewport{flex:1;min-width:0;overflow:hidden;}
+  .ticker-track{display:flex;gap:26px;white-space:nowrap;animation:ticker-scroll 22s linear infinite;width:max-content;}
   @media(hover:hover){ .ticker-track:hover{animation-play-state:paused;} }
   @keyframes ticker-scroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
   .ticker-item{display:flex;align-items:center;gap:7px;flex-shrink:0;}
@@ -274,7 +279,7 @@
 
 <div class="ticker-strip">
   <div class="live-tag"><span class="blip"></span></div>
-  <div class="ticker-track" id="tickerTrack"></div>
+  <div class="ticker-viewport"><div class="ticker-track" id="tickerTrack"></div></div>
   <div id="clock" class="num" style="color:var(--text-2);flex-shrink:0;">00:00:00</div>
 </div>
 
