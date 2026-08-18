@@ -108,16 +108,3 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// Renders a "← Back" icon button into el. Defaults to browser back if there's
-// same-site history to go to, otherwise falls back to /dashboard.html.
-VFX.renderBackButton = function (el, fallbackHref = '/dashboard.html') {
-  el.innerHTML = `<button type="button" id="vfxBackBtn" title="Back" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:var(--bg-2,#161B27);border:1px solid var(--border,#252C3D);color:var(--text-0,#EAEDF4);cursor:pointer;font-size:16px;">←</button>`;
-  document.getElementById('vfxBackBtn').addEventListener('click', () => {
-    if (document.referrer && document.referrer.includes(location.host) && window.history.length > 1) {
-      window.history.back();
-    } else {
-      window.location.href = fallbackHref;
-    }
-  });
-};
-

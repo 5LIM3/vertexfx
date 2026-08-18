@@ -247,7 +247,6 @@
 
 <div class="env-banner"><b>DEMO ENVIRONMENT</b>This environment is provided for demonstration purposes.</div>
 <header class="topbar">
-  <div id="backBtnSlot" style="margin-right:2px;"></div>
   <a href="/" class="brand"><img src="/assets/logo-full.svg" alt="VertexFX"></a>
   <button class="nav-toggle-db" id="navToggleDb" aria-label="Menu">&#9776;</button>
   <nav class="navlinks">
@@ -298,7 +297,7 @@
         <button class="tf-btn" data-tf="4h">4h</button><button class="tf-btn" data-tf="1d">D</button>
       </div>
       <span class="conn-status" id="connStatus"><span class="dot"></span><span id="connStatusLabel">Connecting…</span></span>
-      <button type="button" id="tvChartBtn" class="btn-ghost" style="padding:7px 12px;border-radius:7px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--bg-2);color:var(--text-1);cursor:pointer;">Real Chart ↗</button>
+      <button type="button" id="tvChartBtn" class="btn-ghost" style="padding:7px 12px;border-radius:7px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--bg-2);color:var(--text-1);cursor:pointer;">Real Chart</button>
     </div>
     <div class="chart-canvas-wrap">
       <div id="candles"></div>
@@ -829,7 +828,6 @@ async function init(){
   setInterval(refreshWallet, 1000);
   setInterval(refreshPositions, 4000);
 }
-VFX.renderBackButton(document.getElementById('backBtnSlot'), '/');
 (()=>{
   const toggle = document.getElementById('navToggleDb');
   const links = document.querySelector('.navlinks');
