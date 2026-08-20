@@ -15,10 +15,12 @@
   .cat-card .icon{font-size:22px;margin-bottom:8px;}
   .cat-card .name{font-size:13px;font-weight:600;}
   .article-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
-  .article-card{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:22px;}
+  .article-card{display:block;background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:22px;text-decoration:none;color:inherit;transition:.15s;}
+  .article-card:hover{border-color:var(--accent);background:var(--bg-2);}
   .article-card .tag{font-size:10.5px;font-weight:700;color:var(--accent-2);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:10px;display:block;}
   .article-card h3{font-size:16px;margin-bottom:8px;}
-  .article-card p{color:var(--text-1);font-size:13px;}
+  .article-card p{color:var(--text-1);font-size:13px;margin-bottom:10px;}
+  .article-card .src{font-size:11.5px;color:var(--text-2);}
   @media(max-width:900px){.cat-grid{grid-template-columns:repeat(2,1fr);}.article-grid{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -66,38 +68,45 @@
     <div class="section-head" style="margin-bottom:28px;">
       <div class="eyebrow">Featured articles</div>
       <h2>Start Learning</h2>
+      <p style="color:var(--text-2);font-size:12.5px;margin-top:4px;">Curated lessons from Babypips' School of Pipsology — opens in a new tab.</p>
     </div>
     <div class="article-grid">
-      <div class="article-card">
+      <a class="article-card" href="https://www.babypips.com/forexpedia/currency-pair" target="_blank" rel="noopener noreferrer">
         <span class="tag">Forex</span>
         <h3>Understanding Currency Pairs</h3>
         <p>How base and quote currencies work, and what a price like EUR/USD actually represents.</p>
-      </div>
-      <div class="article-card">
+        <span class="src">Babypips — Forexpedia</span>
+      </a>
+      <a class="article-card" href="https://www.babypips.com/forexpedia/spread" target="_blank" rel="noopener noreferrer">
         <span class="tag">Market Basics</span>
         <h3>What Is Spread?</h3>
         <p>The difference between the bid and ask price, and why it matters for every trade you place.</p>
-      </div>
-      <div class="article-card">
+        <span class="src">Babypips — Forexpedia</span>
+      </a>
+      <a class="article-card" href="https://www.babypips.com/learn/forex/basic-candlestick-patterns" target="_blank" rel="noopener noreferrer">
         <span class="tag">Technical Analysis</span>
         <h3>Reading Candlestick Charts</h3>
         <p>How to interpret open, high, low, and close on a candlestick — and what patterns can tell you.</p>
-      </div>
-      <div class="article-card">
+        <span class="src">Babypips — School of Pipsology</span>
+      </a>
+      <a class="article-card" href="https://www.babypips.com/learn/forex/trend-lines" target="_blank" rel="noopener noreferrer">
         <span class="tag">Technical Analysis</span>
         <h3>Understanding Market Trends</h3>
         <p>Identifying uptrends, downtrends, and consolidation — the foundation of technical analysis.</p>
-      </div>
-      <div class="article-card">
+        <span class="src">Babypips — School of Pipsology</span>
+      </a>
+      <a class="article-card" href="https://www.babypips.com/forexpedia/risk-capital" target="_blank" rel="noopener noreferrer">
         <span class="tag">Risk Management</span>
         <h3>Introduction to Risk Management</h3>
         <p>Position sizing, stop-loss placement, and why protecting capital comes before chasing gains.</p>
-      </div>
-      <div class="article-card">
+        <span class="src">Babypips — Forexpedia</span>
+      </a>
+      <a class="article-card" href="https://www.babypips.com/trading/psychology-4-trader-pitfalls-that-can-blow-your-forex-account-2025-11-26" target="_blank" rel="noopener noreferrer">
         <span class="tag">Trading Psychology</span>
         <h3>Managing Emotion in Trading</h3>
         <p>Why discipline and a consistent process matter more than any single trade.</p>
-      </div>
+        <span class="src">Babypips</span>
+      </a>
     </div>
   </div>
 </section>
