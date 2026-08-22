@@ -87,14 +87,14 @@
                 <label>Network</label>
                 <select id="cryptoNetwork">
                   <option value="USDT-TRC20">USDT (TRC-20)</option>
-                  <option value="USDT-ERC20">USDT (ERC-20)</option>
+                  <option value="USDT-BEP20">USDT (BEP-20)</option>
                   <option value="BTC">Bitcoin</option>
-                  <option value="ETH">Ethereum</option>
+                  <option value="SOL">Solana</option>
                 </select>
               </div>
               <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:11.5px;color:var(--text-1);margin-bottom:14px;word-break:break-all;">
                 <div style="margin-bottom:4px;color:var(--text-2);">Demo deposit address</div>
-                <b class="num" style="color:var(--text-0);">TDemoVfxAddr8f3k29xNqPz61yLmWv7Rt4Hc</b>
+                <b class="num" id="cryptoAddress" style="color:var(--text-0);">TvuhJtWrMNW9sRAdvNWpxie38XxA9RrrcM</b>
               </div>
               <p style="font-size:11.5px;color:var(--text-2);margin-bottom:14px;">This is a demo address — no real crypto is required or processed. Confirming below submits this deposit for review.</p>
               <button type="button" id="cryptoConfirmBtn" class="btn btn-ghost btn-block" style="margin-bottom:14px;cursor:pointer;">I have sent it</button>
@@ -250,6 +250,23 @@ document.querySelectorAll('.method-chip').forEach(chip=>{
   });
 });
 document.getElementById('bankRef').textContent = 'VFX-' + Math.random().toString(36).slice(2,8).toUpperCase();
+
+// Demo-only placeholder addresses, freshly generated — correctly formatted per
+// network so they look like real deposit addresses, but not tied to any real
+// wallet. No real crypto is ever sent or processed (see notice below the field).
+const CRYPTO_DEMO_ADDRESSES = {
+  'USDT-TRC20': 'TvuhJtWrMNW9sRAdvNWpxie38XxA9RrrcM',
+  'USDT-BEP20': '0xa1ed6890854ce4ac8a748b833a658898b9cc183c',
+  'BTC': 'bc1q75ekn4q2j6yq745t7dg0kzc3t2zmzsjs8shm53',
+  'SOL': 'JCRPNpUYqJfUs9XB7313cZJ494RVeeMY7FHVE3pzC6DH',
+};
+const cryptoNetworkSelect = document.getElementById('cryptoNetwork');
+const cryptoAddressEl = document.getElementById('cryptoAddress');
+function updateCryptoAddress(){
+  cryptoAddressEl.textContent = CRYPTO_DEMO_ADDRESSES[cryptoNetworkSelect.value] || CRYPTO_DEMO_ADDRESSES['USDT-TRC20'];
+}
+cryptoNetworkSelect.addEventListener('change', updateCryptoAddress);
+updateCryptoAddress();
 
 let cryptoConfirmed = false;
 const cryptoConfirmBtn = document.getElementById('cryptoConfirmBtn');
