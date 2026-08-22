@@ -10,7 +10,6 @@
 <link rel="stylesheet" href="/css/marketing.css">
 </head>
 <body>
-<div class="env-banner"><b>DEMO ENVIRONMENT</b>This environment is provided for demonstration purposes.</div>
 
 <nav class="site-nav">
   <div class="container">
@@ -36,7 +35,7 @@
       <h1 class="wallet-title">Wallet <span id="accountBadge" class="wallet-badge"></span></h1>
       <div id="accountSwitcher"></div>
     </div>
-    <p class="wallet-desc">Both Demo and Real accounts are 100% simulated — no real money is ever involved in either. "Real" only means it starts at $0 with no welcome bonus, same as a live account would before funding.</p>
+  
     <div class="wallet-grid">
       <div class="card">
         <h3>Balance</h3>
@@ -93,10 +92,10 @@
                 </select>
               </div>
               <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:11.5px;color:var(--text-1);margin-bottom:14px;word-break:break-all;">
-                <div style="margin-bottom:4px;color:var(--text-2);">Demo deposit address</div>
-                <b class="num" id="cryptoAddress" style="color:var(--text-0);">TvuhJtWrMNW9sRAdvNWpxie38XxA9RrrcM</b>
+                <div style="margin-bottom:4px;color:var(--text-2);">Deposit address</div>
+                <b class="num" id="cryptoAddress" style="color:var(--text-0);">TAvBxo1T8bKmBJdwVhARStHB5n35bQCgAp</b>
               </div>
-              <p style="font-size:11.5px;color:var(--text-2);margin-bottom:14px;">This is a demo address — no real crypto is required or processed. Confirming below submits this deposit for review.</p>
+              <p style="font-size:11.5px;color:var(--text-2);margin-bottom:14px;">Confirming below submits this deposit for review.</p>
               <button type="button" id="cryptoConfirmBtn" class="btn btn-ghost btn-block" style="margin-bottom:14px;cursor:pointer;">I have sent it</button>
             </div>
 
@@ -106,7 +105,6 @@
             </div>
             <button type="submit" class="btn btn-primary btn-block" id="walletSubmitBtn" style="cursor:pointer;">Deposit funds</button>
           </form>
-          <p style="margin-top:14px;color:var(--text-2);font-size:11.5px;">Demo flow — no real payment processor is contacted.</p>
         </div>
       </div>
 
@@ -255,10 +253,10 @@ document.getElementById('bankRef').textContent = 'VFX-' + Math.random().toString
 // network so they look like real deposit addresses, but not tied to any real
 // wallet. No real crypto is ever sent or processed (see notice below the field).
 const CRYPTO_DEMO_ADDRESSES = {
-  'USDT-TRC20': 'TvuhJtWrMNW9sRAdvNWpxie38XxA9RrrcM',
-  'USDT-BEP20': '0xa1ed6890854ce4ac8a748b833a658898b9cc183c',
-  'BTC': 'bc1q75ekn4q2j6yq745t7dg0kzc3t2zmzsjs8shm53',
-  'SOL': 'JCRPNpUYqJfUs9XB7313cZJ494RVeeMY7FHVE3pzC6DH',
+  'USDT-TRC20': 'TAvBxo1T8bKmBJdwVhARStHB5n35bQCgAp',
+  'USDT-BEP20': '0x6FbD5FCBF963AeDe8A6076abD5D98F877Af9E2Ca',
+  'BTC': 'bc1q4vtxdxlkkyger23078y5a2ffk3p90nhhwgvkm2',
+  'SOL': '46nPUzJr5uSRjgbghMPsrLmR3ydrzWEfiNs8Bd4q1Gt1',
 };
 const cryptoNetworkSelect = document.getElementById('cryptoNetwork');
 const cryptoAddressEl = document.getElementById('cryptoAddress');
