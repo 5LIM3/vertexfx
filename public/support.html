@@ -14,8 +14,9 @@
   .help-search input:focus{outline:none;border-color:var(--accent);}
   .help-search .icn{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--text-2);}
   .help-cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:48px;}
-  .help-cat{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:22px;transition:.15s;}
-  .help-cat:hover{border-color:var(--accent);}
+  .help-cat{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:22px;transition:.15s;cursor:pointer;text-align:left;width:100%;font:inherit;color:inherit;}
+  .help-cat:hover{border-color:var(--accent);background:var(--bg-2);}
+  .help-cat.active{border-color:var(--accent);background:var(--accent-soft);}
   .help-cat .icon{font-size:22px;margin-bottom:10px;}
   .help-cat h3{font-size:15px;margin-bottom:4px;}
   .help-cat p{color:var(--text-2);font-size:12.5px;}
@@ -58,17 +59,18 @@
 <section class="section" style="padding-top:0;">
   <div class="container" style="max-width:900px;">
     <div class="help-cat-grid">
-      <div class="help-cat"><h3>Account</h3><p>Sign-up, verification, and account settings</p></div>
-      <div class="help-cat"><h3>Trading</h3><p>Placing orders, positions, and execution</p></div>
-      <div class="help-cat"><h3>Markets</h3><p>Instruments, pricing, and market hours</p></div>
-      <div class="help-cat"><h3>Platform</h3><p>Using the web trading terminal</p></div>
-      <div class="help-cat"><h3>Security</h3><p>Two-factor authentication and account safety</p></div>
-      <div class="help-cat"><h3>Technical Support</h3><p>Troubleshooting and platform issues</p></div>
+      <button type="button" class="help-cat" data-filter="account"><h3>Account</h3><p>Sign-up, verification, and account settings</p></button>
+      <button type="button" class="help-cat" data-filter="execution"><h3>Trading</h3><p>Placing orders, positions, and execution</p></button>
+      <button type="button" class="help-cat" data-filter="instruments"><h3>Markets</h3><p>Instruments, pricing, and market hours</p></button>
+      <button type="button" class="help-cat" data-filter="terminal"><h3>Platform</h3><p>Using the web trading terminal</p></button>
+      <button type="button" class="help-cat" data-filter="authentication"><h3>Security</h3><p>Two-factor authentication and account safety</p></button>
+      <button type="button" class="help-cat" data-filter="loading"><h3>Technical Support</h3><p>Troubleshooting and platform issues</p></button>
     </div>
 
     <div class="section-head" style="margin-bottom:24px;">
       <div class="eyebrow">Frequently asked</div>
       <h2>Common Questions</h2>
+      <button type="button" id="clearFaqFilter" style="display:none;margin-top:8px;background:none;border:none;color:var(--accent-2);font-size:12.5px;font-weight:600;cursor:pointer;padding:0;">Show all questions</button>
     </div>
     <div id="faqList">
       <div class="faq-item">
@@ -90,6 +92,14 @@
       <div class="faq-item">
         <h4>What instruments can I trade?</h4>
         <p>VertexFX offers regional fiat currency pairs (KWD, SAR, IQD, and IRR vs USDT), a digital asset, and global indices — see the full list on the Markets page.</p>
+      </div>
+      <div class="faq-item">
+        <h4>How do I use the trading terminal?</h4>
+        <p>Select a market from the watchlist to load it into the chart and order form, choose a timeframe above the chart, then place a trade from the Market Order panel on the right.</p>
+      </div>
+      <div class="faq-item">
+        <h4>What do I do if something isn't loading correctly?</h4>
+        <p>Try a hard refresh (Ctrl+Shift+R, or Cmd+Shift+R on Mac) to clear any cached files, and check your internet connection. If the issue continues, reach out through the <a href="/contact.html">contact page</a>.</p>
       </div>
     </div>
   </div>
@@ -130,12 +140,31 @@
 </footer>
 <script src="/js/vfx-common.js"></script>
 <script>
-document.getElementById('helpSearchInput').addEventListener('input', (e)=>{
-  const q = e.target.value.toLowerCase();
-  document.querySelectorAll('#faqList .faq-item').forEach(item=>{
-    const text = item.textContent.toLowerCase();
-    item.style.display = text.includes(q) ? 'block' : 'none';
+function applyFaqFilter(q){
+  q = q.toLowerCase();
+  document.getElementById('helpSearchInput').value = q;
+  var items = document.querySelectorAll('#faqList .faq-item');
+  for (var i = 0; i < items.length; i++) {
+    var text = items[i].textContent.toLowerCase();
+    items[i].style.display = text.indexOf(q) !== -1 ? 'block' : 'none';
+  }
+  document.getElementById('clearFaqFilter').style.display = q ? 'inline-block' : 'none';
+}
+document.getElementById('helpSearchInput').addEventListener('input', function(e){ applyFaqFilter(e.target.value); });
+
+var catButtons = document.querySelectorAll('.help-cat');
+for (var i = 0; i < catButtons.length; i++) {
+  catButtons[i].addEventListener('click', function(){
+    for (var j = 0; j < catButtons.length; j++) { catButtons[j].classList.remove('active'); }
+    this.classList.add('active');
+    applyFaqFilter(this.dataset.filter);
+    document.getElementById('faqList').scrollIntoView({ behavior:'smooth', block:'start' });
   });
+}
+
+document.getElementById('clearFaqFilter').addEventListener('click', function(){
+  for (var j = 0; j < catButtons.length; j++) { catButtons[j].classList.remove('active'); }
+  applyFaqFilter('');
 });
 </script>
 </body>
