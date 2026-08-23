@@ -216,6 +216,7 @@ async function loadUsers(){
       <td>
         <button class="mini-btn ${u.suspended?'good':'danger'}" data-act="suspend" data-id="${u.id}" data-val="${u.suspended?0:1}">${u.suspended?'Unsuspend':'Suspend'}</button>
         ${u.role==='user' ? `<button class="mini-btn" data-act="promote" data-id="${u.id}">Make admin</button>` : ''}
+        <button class="mini-btn danger" data-act="delete" data-id="${u.id}" data-name="${u.full_name.replace(/"/g,'&quot;')}">Delete account</button>
       </td>
     </tr>`).join('');
   document.querySelectorAll('#usersTable [data-act="suspend"]').forEach(b=>{
@@ -223,6 +224,18 @@ async function loadUsers(){
   });
   document.querySelectorAll('#usersTable [data-act="promote"]').forEach(b=>{
     b.addEventListener('click', async ()=>{ if(confirm('Grant admin access to this user?')){ await VFX.api(`/api/admin/users/${b.dataset.id}/role`, { method:'POST', body: JSON.stringify({ role:'admin' }) }); loadUsers(); } });
+  });
+  document.querySelectorAll('#usersTable [data-act="delete"]').forEach(b=>{
+    b.addEventListener('click', async ()=>{
+      const ok = confirm(`Permanently delete ${b.dataset.name}'s account?\n\nThis removes the user, both wallets, all trading/ledger history, and cannot be undone.`);
+      if(!ok) return;
+      try {
+        await VFX.api(`/api/admin/users/${b.dataset.id}`, { method:'DELETE' });
+        loadUsers();
+      } catch(e) {
+        alert(e.message || 'Failed to delete account');
+      }
+    });
   });
 }
 
