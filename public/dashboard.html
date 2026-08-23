@@ -399,7 +399,6 @@ async function loadUserAndWallet(){
   if(!user) return;
   window._vfxUser = user;
   updateAcctLabel();
-  document.getElementById('harborIdVal').textContent = user.harborId;
   if(user.role === 'admin') document.getElementById('adminNavLink').style.display = 'inline-block';
   VFX.renderAccountSwitcher(document.getElementById('accountSwitcher'), async ()=>{
     updateAcctLabel();
