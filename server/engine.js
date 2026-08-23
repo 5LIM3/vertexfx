@@ -13,16 +13,6 @@
 // server console for [market-data] warnings, not re-guessing these periodically.
 // `contract` = units represented by "1 lot" — pnl = priceDelta * volumeLots * contract
 const SYMBOL_META = [
-  { sym: 'EURUSD', cat: 'forex',   digits: 5, base: 1.0850, vol: 0.00018, contract: 100000 },
-  { sym: 'GBPUSD', cat: 'forex',   digits: 5, base: 1.2680, vol: 0.00022, contract: 100000 },
-  { sym: 'USDJPY', cat: 'forex',   digits: 3, base: 149.20, vol: 0.020,   contract: 100000 / 149.20 },
-  { sym: 'AUDUSD', cat: 'forex',   digits: 5, base: 0.6520, vol: 0.00016, contract: 100000 },
-  { sym: 'USDCAD', cat: 'forex',   digits: 5, base: 1.3610, vol: 0.00015, contract: 100000 / 1.3610 },
-  { sym: 'USDCHF', cat: 'forex',   digits: 5, base: 0.8820, vol: 0.00014, contract: 100000 / 0.8820 },
-  { sym: 'XAUUSD', cat: 'metals',  digits: 2, base: 4305.00, vol: 1.00,   contract: 100 },
-  { sym: 'XAGUSD', cat: 'metals',  digits: 3, base: 48.500, vol: 0.06,    contract: 5000 },
-  { sym: 'BTCUSD', cat: 'crypto',  digits: 1, base: 63500.0, vol: 42,     contract: 1 },
-  { sym: 'ETHUSD', cat: 'crypto',  digits: 2, base: 3420.0, vol: 5.5,     contract: 1 },
   { sym: 'SOLUSD', cat: 'crypto',  digits: 2, base: 148.5, vol: 0.9,      contract: 1 },
   { sym: 'US30',   cat: 'indices', digits: 1, base: 44500.0, vol: 9.5,    contract: 1 },
   { sym: 'US100',  cat: 'indices', digits: 1, base: 21500.0, vol: 7.0,    contract: 1 },
@@ -30,6 +20,19 @@ const SYMBOL_META = [
   // KWD (Kuwaiti Dinar) quoted against USDT — real fiat rate sourced from
   // CurrencyFreaks (USD/KWD), treating USDT ≈ USD 1:1 as most demo platforms do.
   { sym: 'KWDUSDT', cat: 'forex', digits: 5, base: 3.2500, vol: 0.00035, contract: 100000 },
+  // SAR (Saudi Riyal) — hard-pegged by the Saudi central bank at 3.75 per USD;
+  // real rate sourced from CurrencyFreaks. Extremely low volatility by design (peg).
+  { sym: 'SARUSDT', cat: 'forex', digits: 5, base: 0.26667, vol: 0.00003, contract: 100000 },
+  // IQD (Iraqi Dinar) — managed/quasi-pegged near 1,310 per USD; real rate sourced
+  // from CurrencyFreaks. Quoted the same way as KWD/SAR (USDT value of 1 IQD).
+  { sym: 'IQDUSDT', cat: 'forex', digits: 6, base: 0.000763, vol: 0.0000003, contract: 100000 },
+  // IRR (Iranian Rial) — quoted here as "Rials per 1 USDT" (not the usual
+  // "USDT per unit" convention) because 1 IRR is worth ~$0.0000005: showing that
+  // directly would be unreadable. This inverted convention matches how every real
+  // source (and every Iranian exchange) actually quotes it. Uses the free-market/
+  // street rate (~1.86M), not Iran's official sanctions-era peg (~42,000), since
+  // the free-market rate is the one anyone can actually transact at.
+  { sym: 'IRRUSDT', cat: 'forex', digits: 0, base: 1865000, vol: 1500, contract: 100000 / 1865000 },
 ];
 
 const TF_SECONDS = { '1m': 60, '5m': 300, '15m': 900, '1h': 3600, '4h': 14400, '1d': 86400 };
@@ -139,46 +142,72 @@ class PriceEngine {
     }
   }
 
-  /** (Re)generates ~300 1-minute candles (and coarser timeframes) around a given anchor price. */
+  /**
+   * Generates every timeframe's ~300-candle backfill around a given anchor price.
+   *
+   * The old version only generated 300 *1-minute* bars and derived every coarser
+   * timeframe by aggregating that same short window — which meant 1h only had ~5
+   * candles and 1d had ZERO, so the chart auto-stretched the handful of bars it did
+   * have to fill the pane (the giant-rectangle look). It also had no mean reversion,
+   * so a plain 300-step random walk could drift double digits % from the real price.
+   *
+   * Fix: seed each timeframe independently with its own ~300-bar, mean-reverting
+   * walk anchored at the real price, so 1h/4h/1d each actually have a realistic
+   * amount of history and none of them can run away from the real reference price.
+   */
   _seedSymbolHistory(sym, anchorPrice) {
     const s = this.symbols[sym];
     if (!s) return;
     const now = Date.now();
-    let p = anchorPrice;
-    const bars = [];
-    for (let i = 300; i >= 0; i--) {
-      const t = now - i * 60000;
-      const o = p;
-      const drift = gauss() * s.meta.vol * 0.6;
-      const h = o + Math.abs(drift) * (0.6 + Math.random() * 0.8);
-      const l = o - Math.abs(drift) * (0.6 + Math.random() * 0.8);
-      const c = o + drift;
-      p = c;
-      bars.push({ t, o, h: Math.max(o, h, c), l: Math.min(o, l, c), c });
-    }
-    s.candles['1m'] = bars;
-    s.price = p;
-    s.prevDayPrice = bars[Math.max(0, bars.length - 1440)]?.o ?? bars[0].o;
     for (const tf of Object.keys(TF_SECONDS)) {
-      if (tf === '1m') continue;
-      s.candles[tf] = this._aggregate(bars, TF_SECONDS[tf] / 60);
+      s.candles[tf] = this._genSeedSeries(anchorPrice, s.meta.cat, TF_SECONDS[tf] * 1000, now);
     }
+    const m1 = s.candles['1m'];
+    s.price = m1[m1.length - 1].c; // live price picks up right where the most granular seed left off
+    const dayBars = s.candles['1d'];
+    s.prevDayPrice = dayBars.length > 1 ? dayBars[dayBars.length - 2].c : anchorPrice;
   }
 
-  _aggregate(oneMinBars, bucketMinutes) {
-    const out = [];
-    for (let i = 0; i < oneMinBars.length; i += bucketMinutes) {
-      const chunk = oneMinBars.slice(i, i + bucketMinutes);
-      if (!chunk.length) continue;
-      out.push({
-        t: chunk[0].t,
-        o: chunk[0].o,
-        h: Math.max(...chunk.map(b => b.h)),
-        l: Math.min(...chunk.map(b => b.l)),
-        c: chunk[chunk.length - 1].c,
-      });
+  /** Typical total spread (≈3 standard deviations) the seeded history wanders from
+   * the real anchor price, by asset class — this is what keeps a 300-bar daily view
+   * from drifting to an absurd "24h change" purely from compounding random walk. */
+  static SEED_SWING = { forex: 0.015, metals: 0.035, crypto: 0.12, indices: 0.03 };
+
+  /**
+   * ~300 bars of `bucketMs`-long candles, generated as an exact discretization of an
+   * Ornstein-Uhlenbeck (mean-reverting) process around `anchorPrice`. Unlike a fixed
+   * per-step reversion factor, this stays numerically stable and well-behaved no
+   * matter how big the bucket is (1 minute or 1 day) — no hard clamping/pinning
+   * needed, so bars never get stuck flat against a ceiling.
+   */
+  _genSeedSeries(anchorPrice, cat, bucketMs, now, count = 300) {
+    const bars = [];
+    const stdTarget = anchorPrice * (PriceEngine.SEED_SWING[cat] ?? 0.03) / 3; // ~3-sigma ≈ the category's typical swing
+    const halfLifeSec = 12 * 3600; // reversion half-life: history "forgets" a deviation over ~12h, any timeframe
+    const theta = Math.LN2 / halfLifeSec;
+    const dtSec = bucketMs / 1000;
+    const decay = Math.exp(-theta * dtSec);
+    const stepStd = stdTarget * Math.sqrt(1 - decay * decay); // exact OU step variance, no manual time-scaling needed
+    let p = anchorPrice;
+    for (let i = count; i >= 0; i--) {
+      const t = now - i * bucketMs;
+      const o = p;
+      const c = anchorPrice + (o - anchorPrice) * decay + gauss() * stepStd;
+      const drift = c - o;
+      const h = o + Math.abs(drift) * (0.6 + Math.random() * 0.8);
+      const l = o - Math.abs(drift) * (0.6 + Math.random() * 0.8);
+      p = c;
+      // Tick-volume proxy: same per-second synthetic-trade draw the live tick() loop
+      // uses, summed across the bar. For long buckets (4h/1d) we sample a capped
+      // number of "seconds" and scale up, instead of literally looping 86,400+ times.
+      const steps = Math.max(1, Math.round(dtSec));
+      const sampleSteps = Math.min(steps, 300);
+      let v = 0;
+      for (let k = 0; k < sampleSteps; k++) { if (Math.random() < 0.35) v += Math.random() * 2 + 0.01; }
+      v *= steps / sampleSteps;
+      bars.push({ t, o, h: Math.max(o, h, c), l: Math.min(o, l, c), c, v: +v.toFixed(2) });
     }
-    return out;
+    return bars;
   }
 
   /** Advance every symbol's simulation price by one step, shaped by its current regime. */
@@ -193,11 +222,11 @@ class PriceEngine {
         case 'paused':
           next = s.price; // frozen — admin explicitly halted movement
           break;
-        case 'bullish': // "Pump" — trends up over time, but each tick has real back-and-forth (like a real chart)
-          next = s.price + m.vol * 0.07 + gauss() * m.vol * 0.4;
+        case 'bullish': // "Pump" — steady upward drift plus a little noise
+          next = s.price + m.vol * (0.16 + Math.random() * 0.14) + gauss() * m.vol * 0.05;
           break;
-        case 'bearish': // "Dump" — trends down over time, but each tick has real back-and-forth (like a real chart)
-          next = s.price - m.vol * 0.07 + gauss() * m.vol * 0.4;
+        case 'bearish': // "Dump" — steady downward drift plus a little noise
+          next = s.price - m.vol * (0.16 + Math.random() * 0.14) + gauss() * m.vol * 0.05;
           break;
         case 'volatile': // wide random swings, no directional bias
           next = s.price + gauss() * m.vol * 0.4;
@@ -223,6 +252,20 @@ class PriceEngine {
       // update depth around new mid
       s.depth = this._genDepth(next, m.digits);
 
+      // Occasionally draw a synthetic trade-tape print for this tick. The same
+      // draw doubles as this tick's tick-volume contribution to whichever candle
+      // (every timeframe) is currently forming — single source, no separate/fake
+      // "exchange volume" invented for the chart.
+      let tickVol = 0;
+      if (Math.random() < 0.35) {
+        tickVol = +(Math.random() * 2 + 0.01).toFixed(2);
+        this.tradeTape.unshift({
+          t: now, sym, side: Math.random() < 0.5 ? 'buy' : 'sell',
+          vol: tickVol, price: next,
+        });
+        if (this.tradeTape.length > 200) this.tradeTape.pop();
+      }
+
       // update rolling 1m candle
       const bucketStart = Math.floor(now / 60000) * 60000;
       const bars = s.candles['1m'];
@@ -231,8 +274,9 @@ class PriceEngine {
         last.h = Math.max(last.h, next);
         last.l = Math.min(last.l, next);
         last.c = next;
+        last.v = +((last.v || 0) + tickVol).toFixed(2);
       } else {
-        bars.push({ t: bucketStart, o: next, h: next, l: next, c: next });
+        bars.push({ t: bucketStart, o: next, h: next, l: next, c: next, v: tickVol });
         if (bars.length > 2000) bars.shift();
       }
       // roll up coarser timeframes off the same tick
@@ -246,19 +290,11 @@ class PriceEngine {
           lastC.h = Math.max(lastC.h, next);
           lastC.l = Math.min(lastC.l, next);
           lastC.c = next;
+          lastC.v = +((lastC.v || 0) + tickVol).toFixed(2);
         } else {
-          arr.push({ t: bStart, o: next, h: next, l: next, c: next });
+          arr.push({ t: bStart, o: next, h: next, l: next, c: next, v: tickVol });
           if (arr.length > 1000) arr.shift();
         }
-      }
-
-      // occasionally emit a synthetic trade tape entry
-      if (Math.random() < 0.35) {
-        this.tradeTape.unshift({
-          t: now, sym, side: Math.random() < 0.5 ? 'buy' : 'sell',
-          vol: +(Math.random() * 2 + 0.01).toFixed(2), price: next,
-        });
-        if (this.tradeTape.length > 200) this.tradeTape.pop();
       }
     }
   }
