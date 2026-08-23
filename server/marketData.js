@@ -6,8 +6,11 @@
  *   Yahoo Finance's public chart endpoint (free, no key) for anything Stooq
  *   missed. If TWELVE_DATA_API_KEY is set, Twelve Data is used instead of
  *   both (more reliable, requires free signup).
- * - Exotic fiat vs USDT (KWD/SAR/IQD/IRR): CurrencyFreaks (requires a free
+ * - Exotic fiat vs USDT (KWD/SAR/IQD): CurrencyFreaks (requires a free
  *   API key — set CURRENCYFREAKS_API_KEY).
+ * - IRR (free-market rate specifically, not Iran's official peg):
+ *   bonbast.amirhn.com, a free no-key community proxy for Bonbast — see the
+ *   fetchIrrFreeMarket() comment for important caveats about this source.
  *
  * IMPORTANT: every failure is logged to the console with which symbol and
  * which source failed. A symbol that never appears in the "live" log lines
@@ -146,22 +149,63 @@ async function fetchExoticFiat() {
   else console.warn(`[market-data] CurrencyFreaks: no usable IQD rate — ${JSON.stringify(data).slice(0, 200)}`);
 
   // IRR is quoted inverted (Rials per 1 USDT) — see the comment on IRRUSDT in
-  // engine.js for why. Also: CurrencyFreaks' IRR is Iran's official/CBI rate
+  // engine.js for why. CurrencyFreaks' IRR is Iran's official/CBI rate
   // (~42,000), not the free-market/street rate (~1.86M) that's actually
-  // transactable — official-rate data isn't a credible live source for this
-  // one, so IRR intentionally stays on its simulated fallback base for now.
+  // transactable, so it's not used here — see fetchIrrFreeMarket() instead.
 
   return out;
 }
 
+/**
+ * IRR free-market rate from bonbast.amirhn.com — a free, open-source, no-key
+ * proxy for Bonbast's actual free-market rates (the ones people transact at,
+ * not Iran's official/sanctions-era peg). MIT licensed, source at
+ * github.com/itsamirhn/Bonbast-API. Caveat: it's one maintainer's personal
+ * server, not an official/guaranteed-uptime API — if it's down or changes
+ * shape, this safely falls through to IRRUSDT's simulated fallback, same as
+ * every other source in this file.
+ *
+ * Unit safety: Bonbast's own site displays Toman (1 Toman = 10 Rial) but its
+ * API has historically returned Rial. Since I can't directly verify the live
+ * response shape from this environment, this checks the fetched value against
+ * the known plausible free-market Rial-per-USD range and auto-corrects a
+ * Toman-scale reading (÷10 too small) using the fixed, well-documented 10:1
+ * ratio — rather than trusting either unit blindly. If the value is outside
+ * even that corrected range, it's rejected and IRR falls back to simulated;
+ * a live-but-wrong-by-10x number would be worse than an honest placeholder.
+ */
+async function fetchIrrFreeMarket() {
+  const { data, error } = await safeFetchJson('https://bonbast.amirhn.com/latest');
+  if (error) { console.warn(`[market-data] Bonbast (IRR free-market) failed: ${error}`); return {}; }
+  const usd = data?.usd;
+  const sell = parseFloat(usd?.sell);
+  const buy = parseFloat(usd?.buy);
+  if (!(sell > 0) || !(buy > 0)) {
+    console.warn(`[market-data] Bonbast: no usable USD rate — ${JSON.stringify(data).slice(0, 200)}`);
+    return {};
+  }
+  let rialPerUsd = (sell + buy) / 2;
+
+  const PLAUSIBLE_MIN = 1_000_000, PLAUSIBLE_MAX = 4_000_000; // sanity band around the known ~1.86M free-market rate
+  if (rialPerUsd < PLAUSIBLE_MIN && rialPerUsd * 10 >= PLAUSIBLE_MIN && rialPerUsd * 10 <= PLAUSIBLE_MAX) {
+    rialPerUsd *= 10; // looked Toman-scale — apply the fixed 10:1 Toman→Rial ratio
+  }
+  if (rialPerUsd < PLAUSIBLE_MIN || rialPerUsd > PLAUSIBLE_MAX) {
+    console.warn(`[market-data] Bonbast: USD rate ${rialPerUsd} outside plausible free-market range, rejecting`);
+    return {};
+  }
+  return { IRRUSDT: { price: rialPerUsd, source: 'live-bonbast' } };
+}
+
 /** Fetch everything available right now. Returns { SYM: {price, source} }. */
 async function fetchAllLivePrices() {
-  const [crypto, metalsIdx, exoticFiat] = await Promise.all([
+  const [crypto, metalsIdx, exoticFiat, irr] = await Promise.all([
     fetchCrypto().catch((e) => { console.warn('[market-data] crypto fetch threw:', e.message); return {}; }),
     (TD_KEY ? fetchTwelveData() : fetchIndices()).catch((e) => { console.warn('[market-data] indices fetch threw:', e.message); return {}; }),
     fetchExoticFiat().catch((e) => { console.warn('[market-data] exotic fiat fetch threw:', e.message); return {}; }),
+    fetchIrrFreeMarket().catch((e) => { console.warn('[market-data] IRR free-market fetch threw:', e.message); return {}; }),
   ]);
-  return { ...crypto, ...metalsIdx, ...exoticFiat };
+  return { ...crypto, ...metalsIdx, ...exoticFiat, ...irr };
 }
 
 module.exports = { fetchAllLivePrices, TD_KEY_CONFIGURED: !!TD_KEY, CURRENCYFREAKS_CONFIGURED: !!CURRENCYFREAKS_KEY };
