@@ -44,12 +44,11 @@
 <section class="section" style="padding-top:40px;">
   <div class="container" style="max-width:560px;">
     <h1 style="font-size:26px;margin-bottom:6px;">Identity verification</h1>
-    <p style="color:var(--text-1);font-size:13.5px;margin-bottom:24px;">This is a demo flow. Files are never actually uploaded, stored, or sent to a verification provider — this exists only to demonstrate the UI/status flow a real KYC integration (e.g. Sumsub, Persona, Onfido) would use.</p>
 
     <div id="statusBanner" class="status-banner not_started">Loading status…</div>
 
     <div class="card" id="formCard">
-      <h3>Submit documents (mock)</h3>
+      <h3>Submit documents</h3>
       <div class="field">
         <label for="idType">Document type</label>
         <select id="idType">
@@ -109,7 +108,7 @@ async function loadStatus(){
   banner.className = 'status-banner ' + status;
   const labelMap = {
     not_started: "You haven't submitted verification yet.",
-    pending: 'Your documents are under review. This usually takes a few minutes in this demo.',
+    pending: 'Your documents are under review. This usually takes a few minutes.',
     approved: 'Your identity is verified.',
     rejected: 'Your submission was rejected — see note below and resubmit.',
   };
