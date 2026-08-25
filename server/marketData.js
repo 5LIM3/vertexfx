@@ -226,7 +226,18 @@ async function fetchExoticFiat() {
  * a live-but-wrong-by-10x number would be worse than an honest placeholder.
  */
 async function fetchIrrFreeMarket() {
-  const { data, error } = await safeFetchJson('https://bonbast.amirhn.com/latest');
+  // This source chains two requests server-side (scrape bon-bast.com's homepage
+  // for a token, then call their internal API) before it can even answer us, so
+  // it's slower and more failure-prone than a plain JSON API — give it a longer
+  // timeout and a browser-like UA (bare/no-UA requests get blocked by a lot of
+  // anti-bot setups; same reason fetchYahooSymbol() above sets one), plus one
+  // retry, before giving up for this poll cycle.
+  const opts = { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VertexFXDemo/1.0)', 'Accept': 'application/json' } };
+  let { data, error } = await safeFetchJson('https://bonbast.amirhn.com/latest', opts, 12000);
+  if (error) {
+    console.warn(`[market-data] Bonbast (IRR free-market) attempt 1 failed: ${error} — retrying once`);
+    ({ data, error } = await safeFetchJson('https://bonbast.amirhn.com/latest', opts, 12000));
+  }
   if (error) { console.warn(`[market-data] Bonbast (IRR free-market) failed: ${error}`); return {}; }
   const usd = data?.usd;
   const sell = parseFloat(usd?.sell);
