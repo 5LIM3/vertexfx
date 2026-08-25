@@ -143,7 +143,8 @@ class PriceEngine {
   }
 
   /**
-   * Generates every timeframe's ~300-candle backfill around a given anchor price.
+   * Generates every timeframe's candle backfill around a given anchor price
+   * (bar count per timeframe now varies — see SEED_BAR_COUNT below).
    *
    * The old version only generated 300 *1-minute* bars and derived every coarser
    * timeframe by aggregating that same short window — which meant 1h only had ~5
@@ -155,12 +156,25 @@ class PriceEngine {
    * walk anchored at the real price, so 1h/4h/1d each actually have a realistic
    * amount of history and none of them can run away from the real reference price.
    */
+  /** How many bars of history to seed per timeframe. NOT a flat 300 for every
+   * timeframe on purpose — a flat count means the chart's default view spans a
+   * wildly different amount of REAL time per timeframe (300 bars is 5h on the
+   * 1m chart, but 300 DAYS on the 1d chart). Since the browser's chart.timeScale()
+   * .fitContent() zooms out to fit whatever we hand it, a huge span meant a
+   * single tick's few-cent wiggle in the live bar was a sub-pixel change on
+   * that axis — genuinely invisible, not a data bug, but it read as "the chart
+   * isn't moving" on anything above 5m. These counts keep every timeframe's
+   * default view within a few days to a few weeks (a normal "recent history"
+   * window for any real trading UI), so live ticks stay visible everywhere.
+   */
+  static SEED_BAR_COUNT = { '1m': 300, '5m': 300, '15m': 150, '1h': 72, '4h': 42, '1d': 30 };
+
   _seedSymbolHistory(sym, anchorPrice) {
     const s = this.symbols[sym];
     if (!s) return;
     const now = Date.now();
     for (const tf of Object.keys(TF_SECONDS)) {
-      s.candles[tf] = this._genSeedSeries(anchorPrice, s.meta.cat, TF_SECONDS[tf] * 1000, now);
+      s.candles[tf] = this._genSeedSeries(anchorPrice, s.meta.cat, TF_SECONDS[tf] * 1000, now, PriceEngine.SEED_BAR_COUNT[tf]);
     }
     const m1 = s.candles['1m'];
     s.price = m1[m1.length - 1].c; // live price picks up right where the most granular seed left off
