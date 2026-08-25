@@ -545,21 +545,7 @@ async function loadCandles(){
       candleSeries.setData(toChartBars(candleData));
       volumeSeries.setData(toVolumeBars(candleData));
     }
-    // ROOT CAUSE of "only 1m looks alive": every timeframe seeds ~300 bars of
-    // history (300min for 1m, but 300 DAYS for 1d, 50 days for 4h, etc — see
-    // _seedSymbolHistory in engine.js). fitContent() used to zoom out to show
-    // ALL of it, so on anything above 1m the visible price axis spanned weeks
-    // or months — a single tick's few-cent wiggle in the last bar became a
-    // sub-pixel change against that scale, invisible even though the data was
-    // updating correctly every second. Showing only the most recent ~120 bars
-    // (standard for any real trading UI anyway) keeps the visible range tight
-    // enough that live ticks are actually visible on every timeframe.
-    const VISIBLE_BARS = 120;
-    if (candleData.length > VISIBLE_BARS) {
-      chart.timeScale().setVisibleLogicalRange({ from: candleData.length - VISIBLE_BARS, to: candleData.length + 2 });
-    } else {
-      chart.timeScale().fitContent();
-    }
+    chart.timeScale().fitContent();
     updateOHLC();
   }catch(e){
     // Keep the last good chart on screen rather than clearing it to nothing.
