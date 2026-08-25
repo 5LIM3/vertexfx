@@ -722,6 +722,9 @@ function renderTape(trades){
 }
 
 /* ================= WEBSOCKET LIVE FEED ================= */
+// Bucket size (ms) per timeframe — mirrors server/engine.js TF_SECONDS. Needed
+// so the frontend can tell when the live tick has crossed into a new candle.
+const TF_MS = { '1m': 60000, '5m': 300000, '15m': 900000, '1h': 3600000, '4h': 14400000, '1d': 86400000 };
 function setConnStatus(state){
   // state: 'live' | 'down' | 'connecting'
   const el = document.getElementById('connStatus');
@@ -750,8 +753,24 @@ function connectWs(){
 }
 function updateLiveCandle(){
   const s = snapshot[selSym]; if(!s || !candleData.length || !candleSeries) return;
-  const last = candleData[candleData.length-1];
-  last.h = Math.max(last.h, s.price); last.l = Math.min(last.l, s.price); last.c = s.price;
+  // ROOT CAUSE of "chart stops moving": this only ever mutated candleData's
+  // existing last bar. Once the live price ticked past that bar's timeframe
+  // bucket (e.g. the current hour ended on a 1h chart), every subsequent tick
+  // kept rewriting that same old bar in place — nothing ever advanced, so the
+  // chart visually froze until the user manually reselected the symbol/timeframe
+  // (the only two places that called loadCandles()). Fixed by detecting the
+  // bucket rollover here and opening a new bar, exactly like the server's own
+  // tick() does in engine.js.
+  const bucketMs = TF_MS[currentTf] || 3600000;
+  const bucketStart = Math.floor(Date.now() / bucketMs) * bucketMs;
+  let last = candleData[candleData.length - 1];
+  if (last.t !== bucketStart) {
+    last = { t: bucketStart, o: s.price, h: s.price, l: s.price, c: s.price, v: 0 };
+    candleData.push(last);
+    if (candleData.length > 2000) candleData.shift();
+  } else {
+    last.h = Math.max(last.h, s.price); last.l = Math.min(last.l, s.price); last.c = s.price;
+  }
   candleSeries.update({ time: Math.floor(last.t / 1000), open: last.o, high: last.h, low: last.l, close: last.c });
   // Tick-volume for the still-forming bar: count this tick locally (the server's
   // authoritative per-second volume for this bar lands next time loadCandles() refetches).
@@ -823,6 +842,9 @@ async function init(){
   setInterval(tickClock, 1000);
   setInterval(refreshWallet, 1000);
   setInterval(refreshPositions, 4000);
+  // Resync candles from the server periodically — belt-and-suspenders alongside
+  // the bucket-rollover fix above, in case a WS message is ever dropped.
+  setInterval(loadCandles, 60000);
 }
 (()=>{
   const toggle = document.getElementById('navToggleDb');
