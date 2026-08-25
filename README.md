@@ -95,15 +95,16 @@ This only steers the already-simulated number (`server/engine.js` → `setRegime
 it has no effect on the real reference price and no connection to real funds.
 
 ## Real market data
-Every instrument gets a real starting price by default, no signup required (except KWD/USDT):
-- **Crypto** (BTC/ETH/SOL) — CoinGecko, no key
-- **Forex** (EUR/GBP/JPY/AUD/CAD/CHF vs USD) — Frankfurter/ECB, no key
-- **Metals & indices** (XAU/XAG, US30/US100/SPX500) — tries Stooq first, then Yahoo Finance's
-  public chart endpoint if Stooq misses. Both free, no key.
-- **KWD/USDT** — CurrencyFreaks (real USD/KWD rate, USDT treated as ≈USD like most demo
-  platforms do). Needs a free API key — sign up at https://currencyfreaks.com and set
-  `CURRENCYFREAKS_API_KEY` in `.env`. Without it, KWD/USDT stays fully simulated like any other
-  never-connected symbol (see below).
+Every instrument gets a real starting price by default, no signup required for any of it:
+- **Crypto** (SOL) — CoinGecko, no key
+- **Metals & indices** (US30/US100/SPX500) — tries Yahoo Finance's public chart endpoint first,
+  then Stooq if Yahoo misses. Both free, no key.
+- **KWD/SAR/IQD vs USDT** — open.er-api.com (free, no key, no request quota; USDT treated as
+  ≈USD like most demo platforms do). Optionally, set `CURRENCYFREAKS_API_KEY` in `.env` to add
+  CurrencyFreaks as a fallback for when open.er-api.com is unreachable — it's quota-gated to
+  one real call per hour internally so it can't exhaust a free-tier quota the way polling it
+  directly every 45s used to.
+- **IRR/USDT** — bonbast.amirhn.com free-market rate proxy, no key.
 
 Refreshed every 45s. **If a symbol never connects to any of these, this is not silent** — the
 server console prints a `[market-data]` warning naming the exact symbol and source that failed

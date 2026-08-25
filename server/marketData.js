@@ -127,33 +127,84 @@ async function fetchIndices() {
   return out;
 }
 
-/** KWD, SAR, IQD, IRR vs USDT — real fiat rates from CurrencyFreaks (free tier,
- * signup required for a key). One call covers all four exotic-fiat pairs. */
-async function fetchExoticFiat() {
-  if (!CURRENCYFREAKS_KEY) return {};
-  const { data, error } = await safeFetchJson(`https://api.currencyfreaks.com/latest?apikey=${CURRENCYFREAKS_KEY}&symbols=KWD,SAR,IQD,IRR`);
-  if (error) { console.warn(`[market-data] CurrencyFreaks (exotic fiat) failed: ${error}`); return {}; }
+/**
+ * KWD, SAR, IQD vs USDT.
+ * ------------------------------------------------------------------
+ * ROOT CAUSE of "chart isn't moving" / "never connected": this used to call
+ * CurrencyFreaks on every 45s poll (server/index.js). CurrencyFreaks' free
+ * plan is 1000 requests/MONTH, but 45s polling burns ~1,920 requests/DAY —
+ * the monthly quota was gone within hours of a fresh deploy, so these three
+ * symbols silently sat on the simulated fallback base from then on (the
+ * "100% of your requests quota" email).
+ *
+ * Fix, in order:
+ *  1. Primary source is now open.er-api.com — free, no API key, no request
+ *     quota (rates update ~once/day, which is fine for KWD/SAR/IQD: SAR is
+ *     hard-pegged and KWD/IQD are managed, so they barely move intraday).
+ *     This removes the quota problem entirely for the common case.
+ *  2. CurrencyFreaks (if CURRENCYFREAKS_API_KEY is set) is kept ONLY as a
+ *     fallback for when open.er-api.com is unreachable, AND is now
+ *     cache-gated to one real network call per CURRENCYFREAKS_MIN_INTERVAL_MS
+ *     (default 60 min) regardless of how often fetchExoticFiat() itself is
+ *     called — so even on a 45s poll loop it can never re-exhaust a paid or
+ *     free-tier quota again.
+ */
+const CURRENCYFREAKS_MIN_INTERVAL_MS = Number(process.env.CURRENCYFREAKS_MIN_INTERVAL_MS) || 60 * 60 * 1000;
+let currencyFreaksCache = { at: 0, data: null };
+
+async function fetchExoticFiatPrimary() {
+  const { data, error } = await safeFetchJson('https://open.er-api.com/v6/latest/USD');
+  if (error) { console.warn(`[market-data] open.er-api.com (exotic fiat) failed: ${error}`); return {}; }
   const rates = data?.rates || {};
   const out = {};
 
   const kwdPerUsd = parseFloat(rates.KWD);
-  if (kwdPerUsd > 0) out.KWDUSDT = { price: 1 / kwdPerUsd, source: 'live-currencyfreaks' };
-  else console.warn(`[market-data] CurrencyFreaks: no usable KWD rate — ${JSON.stringify(data).slice(0, 200)}`);
+  if (kwdPerUsd > 0) out.KWDUSDT = { price: 1 / kwdPerUsd, source: 'live-erapi' };
+  else console.warn(`[market-data] open.er-api.com: no usable KWD rate`);
 
   const sarPerUsd = parseFloat(rates.SAR);
-  if (sarPerUsd > 0) out.SARUSDT = { price: 1 / sarPerUsd, source: 'live-currencyfreaks' };
-  else console.warn(`[market-data] CurrencyFreaks: no usable SAR rate — ${JSON.stringify(data).slice(0, 200)}`);
+  if (sarPerUsd > 0) out.SARUSDT = { price: 1 / sarPerUsd, source: 'live-erapi' };
+  else console.warn(`[market-data] open.er-api.com: no usable SAR rate`);
 
   const iqdPerUsd = parseFloat(rates.IQD);
-  if (iqdPerUsd > 0) out.IQDUSDT = { price: 1 / iqdPerUsd, source: 'live-currencyfreaks' };
-  else console.warn(`[market-data] CurrencyFreaks: no usable IQD rate — ${JSON.stringify(data).slice(0, 200)}`);
-
-  // IRR is quoted inverted (Rials per 1 USDT) — see the comment on IRRUSDT in
-  // engine.js for why. CurrencyFreaks' IRR is Iran's official/CBI rate
-  // (~42,000), not the free-market/street rate (~1.86M) that's actually
-  // transactable, so it's not used here — see fetchIrrFreeMarket() instead.
+  if (iqdPerUsd > 0) out.IQDUSDT = { price: 1 / iqdPerUsd, source: 'live-erapi' };
+  else console.warn(`[market-data] open.er-api.com: no usable IQD rate`);
 
   return out;
+}
+
+/** Fallback only — quota-gated so this can only ever hit the network once
+ * per CURRENCYFREAKS_MIN_INTERVAL_MS no matter how often it's called. */
+async function fetchExoticFiatCurrencyFreaksFallback() {
+  if (!CURRENCYFREAKS_KEY) return {};
+  const age = Date.now() - currencyFreaksCache.at;
+  if (currencyFreaksCache.data && age < CURRENCYFREAKS_MIN_INTERVAL_MS) {
+    return currencyFreaksCache.data; // served from cache, no network call, no quota spent
+  }
+  const { data, error } = await safeFetchJson(`https://api.currencyfreaks.com/latest?apikey=${CURRENCYFREAKS_KEY}&symbols=KWD,SAR,IQD`);
+  if (error) {
+    console.warn(`[market-data] CurrencyFreaks (fallback) failed: ${error}`);
+    return currencyFreaksCache.data || {}; // stale cache beats nothing
+  }
+  const rates = data?.rates || {};
+  const out = {};
+  const kwdPerUsd = parseFloat(rates.KWD);
+  if (kwdPerUsd > 0) out.KWDUSDT = { price: 1 / kwdPerUsd, source: 'live-currencyfreaks' };
+  const sarPerUsd = parseFloat(rates.SAR);
+  if (sarPerUsd > 0) out.SARUSDT = { price: 1 / sarPerUsd, source: 'live-currencyfreaks' };
+  const iqdPerUsd = parseFloat(rates.IQD);
+  if (iqdPerUsd > 0) out.IQDUSDT = { price: 1 / iqdPerUsd, source: 'live-currencyfreaks' };
+  currencyFreaksCache = { at: Date.now(), data: out };
+  return out;
+}
+
+async function fetchExoticFiat() {
+  const primary = await fetchExoticFiatPrimary();
+  const stillMissing = ['KWDUSDT', 'SARUSDT', 'IQDUSDT'].some((s) => !primary[s]);
+  if (!stillMissing) return primary;
+
+  const fallback = await fetchExoticFiatCurrencyFreaksFallback();
+  return { ...fallback, ...primary }; // primary wins when both have a symbol
 }
 
 /**

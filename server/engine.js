@@ -18,13 +18,13 @@ const SYMBOL_META = [
   { sym: 'US100',  cat: 'indices', digits: 1, base: 21500.0, vol: 7.0,    contract: 1 },
   { sym: 'SPX500', cat: 'indices', digits: 1, base: 6300.0, vol: 2.8,     contract: 1 },
   // KWD (Kuwaiti Dinar) quoted against USDT — real fiat rate sourced from
-  // CurrencyFreaks (USD/KWD), treating USDT ≈ USD 1:1 as most demo platforms do.
+  // open.er-api.com (USD/KWD), treating USDT ≈ USD 1:1 as most demo platforms do.
   { sym: 'KWDUSDT', cat: 'forex', digits: 5, base: 3.2500, vol: 0.00035, contract: 100000 },
   // SAR (Saudi Riyal) — hard-pegged by the Saudi central bank at 3.75 per USD;
-  // real rate sourced from CurrencyFreaks. Extremely low volatility by design (peg).
+  // real rate sourced from open.er-api.com. Extremely low volatility by design (peg).
   { sym: 'SARUSDT', cat: 'forex', digits: 5, base: 0.26667, vol: 0.00003, contract: 100000 },
   // IQD (Iraqi Dinar) — managed/quasi-pegged near 1,310 per USD; real rate sourced
-  // from CurrencyFreaks. Quoted the same way as KWD/SAR (USDT value of 1 IQD).
+  // from open.er-api.com. Quoted the same way as KWD/SAR (USDT value of 1 IQD).
   { sym: 'IQDUSDT', cat: 'forex', digits: 6, base: 0.000763, vol: 0.0000003, contract: 100000 },
   // IRR (Iranian Rial) — quoted here as "Rials per 1 USDT" (not the usual
   // "USDT per unit" convention) because 1 IRR is worth ~$0.0000005: showing that

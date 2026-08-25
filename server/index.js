@@ -114,7 +114,8 @@ server.listen(PORT, () => {
   console.log(marketData.TD_KEY_CONFIGURED
     ? '[market-data] Using Twelve Data for metals/indices (API key configured).'
     : '[market-data] Using free Stooq/Yahoo feeds for metals/indices (no key needed). Crypto (CoinGecko) + forex (Frankfurter) are always live.');
-  console.log(marketData.CURRENCYFREAKS_CONFIGURED
-    ? '[market-data] CurrencyFreaks configured — KWD/USDT is live.'
-    : '[market-data] CURRENCYFREAKS_API_KEY not set — KWD/USDT stays simulated. Get a free key at https://currencyfreaks.com');
+  console.log('[market-data] KWD/SAR/IQD via open.er-api.com (free, no key, no quota).'
+    + (marketData.CURRENCYFREAKS_CONFIGURED
+      ? ' CurrencyFreaks configured as quota-gated fallback.'
+      : ' CURRENCYFREAKS_API_KEY not set — no fallback if open.er-api.com is down (optional, get a free key at https://currencyfreaks.com).'));
 });
