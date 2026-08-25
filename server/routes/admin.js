@@ -215,10 +215,25 @@ module.exports = function adminRouter(engine, wss) {
   // ---- KYC queue ----
   router.get('/kyc', (req, res) => {
     const rows = db.prepare(`
-      SELECT id, email, full_name, harbor_id, kyc_status, kyc_note, created_at
+      SELECT id, email, full_name, harbor_id, kyc_status, kyc_note, kyc_id_type, created_at
       FROM users WHERE kyc_status != 'not_started' ORDER BY created_at DESC
     `).all();
     res.json({ submissions: rows });
+  });
+
+  // Documents are fetched separately from the list above (not inlined into
+  // every row) so the queue table stays fast even with many pending submissions —
+  // this is only called when an admin actually opens one submission to review it.
+  router.get('/kyc/:id/documents', (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    const row = db.prepare('SELECT kyc_id_type, kyc_id_doc, kyc_selfie_doc, kyc_address_doc FROM users WHERE id = ?').get(id);
+    if (!row) return res.status(404).json({ error: 'User not found' });
+    res.json({
+      idType: row.kyc_id_type,
+      idDoc: row.kyc_id_doc,
+      selfieDoc: row.kyc_selfie_doc,
+      addressDoc: row.kyc_address_doc,
+    });
   });
 
   router.post('/kyc/:id/approve', (req, res) => {

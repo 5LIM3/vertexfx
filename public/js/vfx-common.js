@@ -23,7 +23,11 @@ const VFX = {
     const res = await fetch(path, Object.assign({ credentials: 'include' }, opts, { headers }));
     let data = {};
     try { data = await res.json(); } catch {}
-    if (!res.ok) throw new Error(data.error || 'Request failed');
+    if (!res.ok) {
+      const err = new Error(data.error || 'Request failed');
+      err.code = data.code; // e.g. 'KYC_REQUIRED' — lets callers handle specific cases beyond just showing the message
+      throw err;
+    }
     return data;
   },
   async currentUser() {

@@ -26,7 +26,9 @@ const server = http.createServer(app);
 const PORT = process.env.PORT || 3000;
 
 app.use(cors({ origin: true, credentials: true }));
-app.use(express.json());
+// Default 100kb is too small for KYC document uploads (base64-encoded photos) —
+// raised specifically to accommodate those; unrelated routes are unaffected.
+app.use(express.json({ limit: '20mb' }));
 app.use(cookieParser());
 
 // ---- Simulated market engine (single shared instance) ----

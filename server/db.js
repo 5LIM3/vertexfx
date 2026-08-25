@@ -96,6 +96,14 @@ CREATE INDEX IF NOT EXISTS idx_wallets_user ON wallets(user_id, account_type);
 CREATE INDEX IF NOT EXISTS idx_everif_token ON email_verifications(token);
 `);
 
+// Lightweight migration: add KYC document columns to a users table that may
+// already exist from before this feature (CREATE TABLE IF NOT EXISTS above
+// won't add columns to an existing table). Each ALTER is safe to re-run —
+// SQLite errors on a duplicate column, which we just ignore.
+for (const col of ['kyc_id_type TEXT', 'kyc_id_doc TEXT', 'kyc_selfie_doc TEXT', 'kyc_address_doc TEXT']) {
+  try { db.exec(`ALTER TABLE users ADD COLUMN ${col}`); } catch (e) { /* column already exists */ }
+}
+
 /**
  * node:sqlite's StatementSync.run()/get()/all() don't accept a plain JS
  * `undefined` the way better-sqlite3 does — normalize to null so

@@ -115,6 +115,17 @@ router.post('/withdraw', requireAuth, (req, res) => {
   const { amount, method } = req.body || {};
   const amt = parseFloat(amount);
   if (!amt || amt <= 0) return res.status(400).json({ error: 'Enter a valid withdrawal amount' });
+
+  // KYC is only required for the Real account — Demo is deliberately frictionless
+  // (practice money, no verification needed), matching how real brokers treat
+  // demo vs live accounts.
+  if (accountType === 'real') {
+    const user = db.prepare('SELECT kyc_status FROM users WHERE id = ?').get(req.userId);
+    if (user.kyc_status !== 'approved') {
+      return res.status(403).json({ error: 'Complete identity verification (KYC) before withdrawing from your Real account.', code: 'KYC_REQUIRED' });
+    }
+  }
+
   const w = getWallet(req.userId, accountType);
   const locked = openPositionsMargin(req.userId, accountType);
   const free = w.balance - locked;
