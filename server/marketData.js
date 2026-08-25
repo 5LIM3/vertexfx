@@ -30,6 +30,20 @@ const YAHOO_SYMBOLS = { US30: '^DJI', US100: '^NDX', SPX500: '^GSPC' };
 const TD_KEY = process.env.TWELVE_DATA_API_KEY || '';
 const CURRENCYFREAKS_KEY = process.env.CURRENCYFREAKS_API_KEY || '';
 
+// Node's fetch() wraps every network-level failure (DNS, TLS, connection
+// refused, etc.) in a generic top-level "fetch failed" Error and puts the
+// ACTUAL reason in a separate, easy-to-miss `.cause` property — which was
+// never being logged, so every failure just showed up as the useless string
+// "fetch failed" with no way to tell DNS failure from a timeout from a block.
+// This surfaces e.cause (code/message) alongside it so future failures are
+// actually diagnosable from the logs instead of a dead end.
+function describeError(e) {
+  if (e.name === 'AbortError') return 'timeout';
+  const cause = e.cause;
+  const causeDesc = cause ? (cause.code || cause.message || String(cause)) : null;
+  return causeDesc ? `${e.message} (cause: ${causeDesc})` : e.message;
+}
+
 async function safeFetchJson(url, opts = {}, timeoutMs = 6000) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), timeoutMs);
@@ -38,7 +52,7 @@ async function safeFetchJson(url, opts = {}, timeoutMs = 6000) {
     if (!res.ok) return { error: `HTTP ${res.status}` };
     return { data: await res.json() };
   } catch (e) {
-    return { error: e.name === 'AbortError' ? 'timeout' : e.message };
+    return { error: describeError(e) };
   } finally {
     clearTimeout(t);
   }
@@ -52,7 +66,7 @@ async function safeFetchText(url, opts = {}, timeoutMs = 6000) {
     if (!res.ok) return { error: `HTTP ${res.status}` };
     return { data: await res.text() };
   } catch (e) {
-    return { error: e.name === 'AbortError' ? 'timeout' : e.message };
+    return { error: describeError(e) };
   } finally {
     clearTimeout(t);
   }
