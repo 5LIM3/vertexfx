@@ -1,0 +1,81 @@
+From f129f34867661feec99c8966dfa116b5cbfd8545 Mon Sep 17 00:00:00 2001
+From: 5LIM3 <alozieanyatonwu@gmail.com>
+Date: Tue, 25 Aug 2026 14:13:39 +0000
+Subject: [PATCH] fix: tighten seed history per timeframe so live ticks stay
+ visible
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Previous client-side zoom-range attempt (reverted) was risky and broke
+rendering — this replaces it with a safer, server-side fix that's
+fully testable without a browser.
+
+Root cause (confirmed): every timeframe seeded a flat 300 bars, but
+300 bars is a wildly different amount of real time depending on the
+bucket size — 5h on 1m, but 300 DAYS on 1d. The browser's fitContent()
+zooms to fit whatever history it's given, so on 15m/1h/4h/1d the
+Y-axis was scaled to days/weeks/months of price action, making a
+single tick's few-cent move an invisible sub-pixel change — not a data
+bug, confirmed by direct measurement, just an axis-scale problem.
+
+Fix: seed each timeframe with a bar count sized to keep its default
+view within a few days to a few weeks (1m/5m unchanged at 300; 15m:
+150 [~1.6 days], 1h: 72 [3 days], 4h: 42 [7 days], 1d: 30 [~1 month]).
+Also confirmed numerically that the mean-reverting process keeps the
+visible price RANGE roughly bounded regardless of window length, so
+even the 1d view's range doesn't blow back out.
+
+Verified: ran the engine directly and confirmed bar counts/time spans
+for every timeframe, and confirmed candles() returns non-empty results
+for every symbol × timeframe combination with no crashes. No client-
+side JS touched at all — plain fitContent() (the known-working state)
+is untouched.
+---
+ server/engine.js | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
+
+diff --git a/server/engine.js b/server/engine.js
+index 38eab44..3c8786a 100644
+--- a/server/engine.js
++++ b/server/engine.js
+@@ -148,7 +148,8 @@ class PriceEngine {
+   }
+ 
+   /**
+-   * Generates every timeframe's ~300-candle backfill around a given anchor price.
++   * Generates every timeframe's candle backfill around a given anchor price
++   * (bar count per timeframe now varies — see SEED_BAR_COUNT below).
+    *
+    * The old version only generated 300 *1-minute* bars and derived every coarser
+    * timeframe by aggregating that same short window — which meant 1h only had ~5
+@@ -160,12 +161,25 @@ class PriceEngine {
+    * walk anchored at the real price, so 1h/4h/1d each actually have a realistic
+    * amount of history and none of them can run away from the real reference price.
+    */
++  /** How many bars of history to seed per timeframe. NOT a flat 300 for every
++   * timeframe on purpose — a flat count means the chart's default view spans a
++   * wildly different amount of REAL time per timeframe (300 bars is 5h on the
++   * 1m chart, but 300 DAYS on the 1d chart). Since the browser's chart.timeScale()
++   * .fitContent() zooms out to fit whatever we hand it, a huge span meant a
++   * single tick's few-cent wiggle in the live bar was a sub-pixel change on
++   * that axis — genuinely invisible, not a data bug, but it read as "the chart
++   * isn't moving" on anything above 5m. These counts keep every timeframe's
++   * default view within a few days to a few weeks (a normal "recent history"
++   * window for any real trading UI), so live ticks stay visible everywhere.
++   */
++  static SEED_BAR_COUNT = { '1m': 300, '5m': 300, '15m': 150, '1h': 72, '4h': 42, '1d': 30 };
++
+   _seedSymbolHistory(sym, anchorPrice) {
+     const s = this.symbols[sym];
+     if (!s) return;
+     const now = Date.now();
+     for (const tf of Object.keys(TF_SECONDS)) {
+-      s.candles[tf] = this._genSeedSeries(anchorPrice, s.meta.cat, TF_SECONDS[tf] * 1000, now);
++      s.candles[tf] = this._genSeedSeries(anchorPrice, s.meta.cat, TF_SECONDS[tf] * 1000, now, PriceEngine.SEED_BAR_COUNT[tf]);
+     }
+     const m1 = s.candles['1m'];
+     s.price = m1[m1.length - 1].c; // live price picks up right where the most granular seed left off
+-- 
+2.43.0
+

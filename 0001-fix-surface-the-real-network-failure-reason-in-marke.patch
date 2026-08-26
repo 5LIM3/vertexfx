@@ -1,0 +1,69 @@
+From 5e76f39a8f6d7542ee2ecb207cc85061851c9530 Mon Sep 17 00:00:00 2001
+From: 5LIM3 <alozieanyatonwu@gmail.com>
+Date: Tue, 25 Aug 2026 07:25:48 +0000
+Subject: [PATCH] fix: surface the real network-failure reason in market-data
+ logs
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Every fetch failure was logging as the useless generic string 'fetch
+failed' — Node's fetch() wraps the ACTUAL reason (DNS failure, TLS
+error, connection refused, etc.) in a separate e.cause property that
+was never being read or logged, so there was no way to tell a DNS
+failure from a timeout from a block from the console output (this is
+what made the IRR/Bonbast failure undiagnosable from the Fly logs).
+
+Added describeError() to safeFetchJson/safeFetchText that surfaces
+e.cause.code / e.cause.message alongside the top-level message.
+Applies to every source in this file, not just Bonbast.
+---
+ server/marketData.js | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
+
+diff --git a/server/marketData.js b/server/marketData.js
+index dc2b04b..1c3be5b 100644
+--- a/server/marketData.js
++++ b/server/marketData.js
+@@ -30,6 +30,20 @@ const YAHOO_SYMBOLS = { US30: '^DJI', US100: '^NDX', SPX500: '^GSPC' };
+ const TD_KEY = process.env.TWELVE_DATA_API_KEY || '';
+ const CURRENCYFREAKS_KEY = process.env.CURRENCYFREAKS_API_KEY || '';
+ 
++// Node's fetch() wraps every network-level failure (DNS, TLS, connection
++// refused, etc.) in a generic top-level "fetch failed" Error and puts the
++// ACTUAL reason in a separate, easy-to-miss `.cause` property — which was
++// never being logged, so every failure just showed up as the useless string
++// "fetch failed" with no way to tell DNS failure from a timeout from a block.
++// This surfaces e.cause (code/message) alongside it so future failures are
++// actually diagnosable from the logs instead of a dead end.
++function describeError(e) {
++  if (e.name === 'AbortError') return 'timeout';
++  const cause = e.cause;
++  const causeDesc = cause ? (cause.code || cause.message || String(cause)) : null;
++  return causeDesc ? `${e.message} (cause: ${causeDesc})` : e.message;
++}
++
+ async function safeFetchJson(url, opts = {}, timeoutMs = 6000) {
+   const ctrl = new AbortController();
+   const t = setTimeout(() => ctrl.abort(), timeoutMs);
+@@ -38,7 +52,7 @@ async function safeFetchJson(url, opts = {}, timeoutMs = 6000) {
+     if (!res.ok) return { error: `HTTP ${res.status}` };
+     return { data: await res.json() };
+   } catch (e) {
+-    return { error: e.name === 'AbortError' ? 'timeout' : e.message };
++    return { error: describeError(e) };
+   } finally {
+     clearTimeout(t);
+   }
+@@ -52,7 +66,7 @@ async function safeFetchText(url, opts = {}, timeoutMs = 6000) {
+     if (!res.ok) return { error: `HTTP ${res.status}` };
+     return { data: await res.text() };
+   } catch (e) {
+-    return { error: e.name === 'AbortError' ? 'timeout' : e.message };
++    return { error: describeError(e) };
+   } finally {
+     clearTimeout(t);
+   }
+-- 
+2.43.0
+

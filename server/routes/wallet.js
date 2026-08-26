@@ -112,9 +112,14 @@ router.post('/deposit', requireAuth, (req, res) => {
 
 router.post('/withdraw', requireAuth, (req, res) => {
   const accountType = getAccountType(req);
-  const { amount, method } = req.body || {};
+  const { amount, method, destinationAddress, network } = req.body || {};
   const amt = parseFloat(amount);
   if (!amt || amt <= 0) return res.status(400).json({ error: 'Enter a valid withdrawal amount' });
+
+  const m = METHODS.includes(method) ? method : 'bank_transfer';
+  if (m === 'crypto' && (!destinationAddress || String(destinationAddress).trim().length < 8)) {
+    return res.status(400).json({ error: 'Enter a valid destination wallet address' });
+  }
 
   // KYC is only required for the Real account — Demo is deliberately frictionless
   // (practice money, no verification needed), matching how real brokers treat
@@ -132,15 +137,17 @@ router.post('/withdraw', requireAuth, (req, res) => {
   if (amt > free) {
     return res.status(400).json({ error: `Insufficient free balance. Available: $${free.toFixed(2)}` });
   }
-  const m = METHODS.includes(method) ? method : 'bank_transfer';
   const now = Date.now();
   const ref = 'WD-' + now.toString(36).toUpperCase();
+  const note = m === 'crypto'
+    ? `Simulated withdrawal — send ${network || 'crypto'} to ${String(destinationAddress).trim()}`
+    : 'Simulated withdrawal — reviewed by mock admin flow';
 
   const tx = db.transaction(() => {
     db.prepare('UPDATE wallets SET balance = balance - ?, updated_at = ? WHERE user_id = ? AND account_type = ?').run(amt, now, req.userId, accountType);
     db.prepare(
       'INSERT INTO ledger (user_id, account_type, type, amount, status, method, reference, note, created_at) VALUES (?,?,?,?,?,?,?,?,?)'
-    ).run(req.userId, accountType, 'withdrawal', -amt, 'pending', m, ref, 'Simulated withdrawal — reviewed by mock admin flow', now);
+    ).run(req.userId, accountType, 'withdrawal', -amt, 'pending', m, ref, note, now);
   });
   tx();
 

@@ -91,12 +91,23 @@
                   <option value="SOL">Solana</option>
                 </select>
               </div>
-              <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:11.5px;color:var(--text-1);margin-bottom:14px;word-break:break-all;">
-                <div style="margin-bottom:4px;color:var(--text-2);">Deposit address</div>
-                <b class="num" id="cryptoAddress" style="color:var(--text-0);">TAvBxo1T8bKmBJdwVhARStHB5n35bQCgAp</b>
+
+              <div id="cryptoDepositView">
+                <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:11.5px;color:var(--text-1);margin-bottom:14px;word-break:break-all;">
+                  <div style="margin-bottom:4px;color:var(--text-2);">Deposit address</div>
+                  <b class="num" id="cryptoAddress" style="color:var(--text-0);">TAvBxo1T8bKmBJdwVhARStHB5n35bQCgAp</b>
+                </div>
+                <p style="font-size:11.5px;color:var(--text-2);margin-bottom:14px;">Confirming below submits this deposit for review.</p>
+                <button type="button" id="cryptoConfirmBtn" class="btn btn-ghost btn-block" style="margin-bottom:14px;cursor:pointer;">I have sent it</button>
               </div>
-              <p style="font-size:11.5px;color:var(--text-2);margin-bottom:14px;">Confirming below submits this deposit for review.</p>
-              <button type="button" id="cryptoConfirmBtn" class="btn btn-ghost btn-block" style="margin-bottom:14px;cursor:pointer;">I have sent it</button>
+
+              <div id="cryptoWithdrawView" style="display:none;">
+                <div class="field">
+                  <label>Your wallet address</label>
+                  <input type="text" id="withdrawAddress" placeholder="Paste the address you want funds sent to" style="font-family:var(--font-mono);font-size:12.5px;">
+                </div>
+                <p style="font-size:11.5px;color:var(--text-2);margin-bottom:14px;">Funds are sent to this address once your withdrawal is approved. Double-check the network and address — this can't be reversed once sent.</p>
+              </div>
             </div>
 
             <div class="field">
@@ -132,6 +143,7 @@ async function init(){
   const user = await VFX.requireAuthOrRedirect();
   if(!user) return;
   try{ kycStatus = (await VFX.api('/api/kyc/status')).status; }catch(e){}
+  updateCryptoView();
   renderAccountUI();
   VFX.renderAccountSwitcher(document.getElementById('accountSwitcher'), async ()=>{
     renderAccountUI();
@@ -252,6 +264,7 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
     document.getElementById('methodLabel').textContent = currentTab==='deposit' ? 'Deposit method' : 'Withdrawal method';
     document.getElementById('amountLabel').textContent = currentTab==='deposit' ? 'Deposit amount (USD)' : 'Withdrawal amount (USD)';
     document.getElementById('walletSubmitBtn').textContent = currentTab==='deposit' ? 'Deposit funds' : 'Request withdrawal';
+    updateCryptoView();
     updateKycGate();
   });
 });
@@ -265,9 +278,19 @@ document.querySelectorAll('.method-chip').forEach(chip=>{
     document.querySelectorAll('.method-details').forEach(d=>d.style.display='none');
     const panel = document.getElementById('methodDetails-'+currentMethod);
     if(panel) panel.style.display='block';
+    updateCryptoView();
   });
 });
 document.getElementById('bankRef').textContent = 'VFX-' + Math.random().toString(36).slice(2,8).toUpperCase();
+
+// Deposit: show OUR address, user sends TO it, then confirms with "I have sent it".
+// Withdraw: the opposite direction — user tells us THEIR address, we send to it once
+// approved, so there's nothing for them to "confirm sending" (we're the sender).
+function updateCryptoView(){
+  const isWithdraw = currentTab === 'withdraw';
+  document.getElementById('cryptoDepositView').style.display = isWithdraw ? 'none' : 'block';
+  document.getElementById('cryptoWithdrawView').style.display = isWithdraw ? 'block' : 'none';
+}
 
 // Demo-only placeholder addresses, freshly generated — correctly formatted per
 // network so they look like real deposit addresses, but not tied to any real
@@ -322,6 +345,16 @@ document.getElementById('walletForm').addEventListener('submit', async (e)=>{
       proofFilename: 'user-confirmed', // no file upload — user explicitly confirmed via the "I have sent it" button
     };
   }
+  if(currentTab==='withdraw' && currentMethod==='crypto'){
+    const destinationAddress = document.getElementById('withdrawAddress').value.trim();
+    if(!destinationAddress){
+      errBox.textContent = 'Enter the wallet address you want funds sent to.';
+      errBox.style.display='block';
+      return;
+    }
+    payload.destinationAddress = destinationAddress;
+    payload.network = document.getElementById('cryptoNetwork').value;
+  }
 
   try{
     const res = await VFX.api(endpoint, { method:'POST', body: JSON.stringify(payload) });
@@ -334,6 +367,7 @@ document.getElementById('walletForm').addEventListener('submit', async (e)=>{
     }
     okBox.style.display='block';
     document.getElementById('amount').value='';
+    if(document.getElementById('withdrawAddress')) document.getElementById('withdrawAddress').value='';
     if(cryptoConfirmed){
       cryptoConfirmed = false;
       cryptoConfirmBtn.textContent = 'I have sent it';

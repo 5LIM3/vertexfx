@@ -532,8 +532,10 @@ function setChartLoading(isLoading){
   el.style.visibility = isLoading ? 'visible' : 'hidden';
 }
 
-async function loadCandles(){
-  setChartLoading(true);
+async function loadCandles(resetView = true){
+  // Only show the full-page loading overlay on a genuine first load — not on the
+  // periodic background refresh below, which should be invisible to the user.
+  if (!candleData.length) setChartLoading(true);
   try{
     // Match the price scale precision to this instrument's real digits (e.g. 5dp for
     // EUR/USD) instead of the library's 2dp default.
@@ -545,7 +547,25 @@ async function loadCandles(){
       candleSeries.setData(toChartBars(candleData));
       volumeSeries.setData(toVolumeBars(candleData));
     }
-    chart.timeScale().fitContent();
+    if (resetView) {
+      // Every timeframe seeds ~300 bars of history (300min for 1m, but 300 DAYS
+      // for 1d, 50 days for 4h — see _seedSymbolHistory in engine.js). Zooming to
+      // show ALL of it made the visible price axis span weeks/months, so a single
+      // tick's few-cent wiggle in the last bar was a sub-pixel change — invisible,
+      // even though the data was updating correctly every second. Showing only
+      // the most recent ~120 bars (standard for any real trading UI anyway) keeps
+      // the visible range tight enough that live ticks are actually visible.
+      //
+      // resetView is false on the 60s background refresh specifically so this
+      // never yanks the chart back to "latest" while someone's mid-scroll looking
+      // at history — that was the actual complaint last time this was tried.
+      const VISIBLE_BARS = 120;
+      if (candleData.length > VISIBLE_BARS) {
+        chart.timeScale().setVisibleLogicalRange({ from: candleData.length - VISIBLE_BARS, to: candleData.length + 2 });
+      } else {
+        chart.timeScale().fitContent();
+      }
+    }
     updateOHLC();
   }catch(e){
     // Keep the last good chart on screen rather than clearing it to nothing.
@@ -844,7 +864,7 @@ async function init(){
   setInterval(refreshPositions, 4000);
   // Resync candles from the server periodically — belt-and-suspenders alongside
   // the bucket-rollover fix above, in case a WS message is ever dropped.
-  setInterval(loadCandles, 60000);
+  setInterval(() => loadCandles(false), 60000);
 }
 (()=>{
   const toggle = document.getElementById('navToggleDb');
