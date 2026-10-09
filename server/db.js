@@ -136,4 +136,28 @@ db.transaction = (fn) => {
   };
 };
 
+// ---- One-time cleanup: instruments removed from the platform ----
+// SOLUSD / US30 / US100 / SPX500 no longer exist in the engine. Any position still
+// open on one would price as null and book a bogus loss when closed, so flat-close
+// them at entry price (P&L 0) and drop their admin symbol_controls rows.
+// Idempotent: a no-op once nothing is left to clean up.
+const REMOVED_SYMBOLS = ['SOLUSD', 'US30', 'US100', 'SPX500'];
+{
+  const ph = REMOVED_SYMBOLS.map(() => '?').join(',');
+  const orphans = db.prepare(`SELECT * FROM positions WHERE status = 'open' AND symbol IN (${ph})`).all(...REMOVED_SYMBOLS);
+  const now = Date.now();
+  const cleanup = db.transaction(() => {
+    for (const p of orphans) {
+      db.prepare("UPDATE positions SET status='closed', close_price=entry_price, pnl=0, closed_at=? WHERE id=?").run(now, p.id);
+      db.prepare(
+        'INSERT INTO ledger (user_id, account_type, type, amount, status, method, reference, note, created_at) VALUES (?,?,?,?,?,?,?,?,?)'
+      ).run(p.user_id, p.account_type, 'trade_pnl', 0, 'completed', null, 'POS-' + p.id,
+        `${p.symbol} ${p.side} closed at entry — instrument removed from platform`, now);
+    }
+    db.prepare(`DELETE FROM symbol_controls WHERE symbol IN (${ph})`).run(...REMOVED_SYMBOLS);
+  });
+  cleanup();
+  if (orphans.length) console.log(`[db] closed ${orphans.length} open position(s) on removed instruments at entry price`);
+}
+
 module.exports = db;

@@ -382,7 +382,7 @@
 /* ================= STATE ================= */
 let SYMBOLS = [];             // meta from /api/trading/symbols
 let snapshot = {};            // sym -> {price, digits, cat, chgPct, depth}
-let selSym = 'SOLUSD';
+let selSym = 'KWDUSDT';
 let currentTf = '1h';
 let candleData = [];
 let positions = [];
@@ -803,12 +803,8 @@ function updateLiveCandle(){
 function tickClock(){ document.getElementById('clock').textContent = new Date().toTimeString().slice(0,8); }
 
 /* ================= REAL CHART (TradingView) ================= */
-// Maps our symbols to a TradingView ticker. A few instruments have more than
-// one reasonable provider — if one doesn't resolve, edit this map to try another
-// (e.g. swap CAPITALCOM:US100 for PEPPERSTONE:US100).
+// Maps our symbols to a TradingView ticker.
 const TV_SYMBOL_MAP = {
-  SOLUSD: 'BINANCE:SOLUSDT',
-  US30: 'CAPITALCOM:US30', US100: 'CAPITALCOM:US100', SPX500: 'CAPITALCOM:US500',
   // KWD/SAR/IQD/IRR intentionally left unmapped — these aren't reliably covered by
   // mainstream TradingView forex feeds (thin/pegged/sanctions-affected currencies).
   // openTvChart() already handles a missing mapping gracefully rather than guessing
@@ -854,7 +850,7 @@ async function init(){
   const { symbols, snapshot: snap } = await VFX.api('/api/trading/symbols');
   SYMBOLS = symbols; snapshot = snap;
   renderWatchlist(); renderTicker();
-  await selectSymbol('SOLUSD');
+  await selectSymbol('KWDUSDT');
   refreshVol();
   await refreshPositions();
   tickClock();

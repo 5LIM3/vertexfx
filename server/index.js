@@ -86,9 +86,8 @@ setInterval(() => {
 }, 1000);
 
 // ---- Live market data poller ----
-// Crypto (CoinGecko) + forex (Frankfurter) need no API key and are safe to poll
-// fairly often. Twelve Data (metals/indices) only runs if TWELVE_DATA_API_KEY is
-// set, since its free tier is tightly rate-limited.
+// KWD/SAR/IQD (open.er-api.com) and IRR (Bonbast) need no API key and are safe
+// to poll fairly often.
 async function pollLiveData() {
   try {
     const prices = await marketData.fetchAllLivePrices();
@@ -111,9 +110,6 @@ setInterval(pollLiveData, 45000);
 
 server.listen(PORT, () => {
   console.log(`VertexFX server (simulated engine + live data anchors) running on http://localhost:${PORT}`);
-  console.log(marketData.TD_KEY_CONFIGURED
-    ? '[market-data] Using Twelve Data for metals/indices (API key configured).'
-    : '[market-data] Using free Stooq/Yahoo feeds for metals/indices (no key needed). Crypto (CoinGecko) + forex (Frankfurter) are always live.');
   console.log('[market-data] KWD/SAR/IQD via open.er-api.com (free, no key, no quota).'
     + (marketData.CURRENCYFREAKS_CONFIGURED
       ? ' CurrencyFreaks configured as quota-gated fallback.'

@@ -8,15 +8,11 @@
  */
 
 // `base` values below are LAST-RESORT fallbacks only — used if every live source
-// (CoinGecko/Frankfurter/Stooq/Yahoo/Twelve Data) fails for that symbol. They will
+// (open.er-api.com / CurrencyFreaks / Bonbast) fails for that symbol. They will
 // go stale over time by design; the real fix for a stale number is checking the
 // server console for [market-data] warnings, not re-guessing these periodically.
 // `contract` = units represented by "1 lot" — pnl = priceDelta * volumeLots * contract
 const SYMBOL_META = [
-  { sym: 'SOLUSD', cat: 'crypto',  digits: 2, base: 148.5, vol: 0.9,      contract: 1 },
-  { sym: 'US30',   cat: 'indices', digits: 1, base: 44500.0, vol: 9.5,    contract: 1 },
-  { sym: 'US100',  cat: 'indices', digits: 1, base: 21500.0, vol: 7.0,    contract: 1 },
-  { sym: 'SPX500', cat: 'indices', digits: 1, base: 6300.0, vol: 2.8,     contract: 1 },
   // KWD (Kuwaiti Dinar) quoted against USDT — real fiat rate sourced from
   // open.er-api.com (USD/KWD), treating USDT ≈ USD 1:1 as most demo platforms do.
   { sym: 'KWDUSDT', cat: 'forex', digits: 5, base: 3.2500, vol: 0.00035, contract: 100000 },
@@ -185,7 +181,7 @@ class PriceEngine {
   /** Typical total spread (≈3 standard deviations) the seeded history wanders from
    * the real anchor price, by asset class — this is what keeps a 300-bar daily view
    * from drifting to an absurd "24h change" purely from compounding random walk. */
-  static SEED_SWING = { forex: 0.015, metals: 0.035, crypto: 0.12, indices: 0.03 };
+  static SEED_SWING = { forex: 0.015, metals: 0.035 };
 
   /**
    * ~300 bars of `bucketMs`-long candles, generated as an exact discretization of an
